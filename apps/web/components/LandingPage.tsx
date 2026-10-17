@@ -31,9 +31,17 @@ interface LandingPageProps {
 
 export function LandingPage({ onNavigate }: LandingPageProps) {
   const { locale } = useLanguage();
-  const { loginAsDemo, setIsAuthModalOpen } = useAuth();
+  const { loginAsDemo, openAuthModal, user } = useAuth();
   const isAr = locale === "ar";
   const ArrowIcon = isAr ? ArrowLeft : ArrowRight;
+
+  const handleStartWizard = () => {
+    if (!user) {
+      openAuthModal("signup");
+    } else {
+      onNavigate("wizard");
+    }
+  };
 
   const handleDemoAthlete = async () => {
     await loginAsDemo();
@@ -93,7 +101,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 max-w-xl mx-auto">
           {/* Main CTA: Onboarding Wizard */}
           <button
-            onClick={() => onNavigate("wizard")}
+            onClick={handleStartWizard}
             className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl bg-primary text-primary-foreground font-black text-sm sm:text-base hover:bg-primary/90 transition-all shadow-md hover:shadow-primary/20 hover:scale-[1.02]"
           >
             <span>{isAr ? "ابدأ التقييم وتصميم خطتك (3 دقائق)" : "Start Smart Diagnostic (3 Mins)"}</span>
@@ -401,7 +409,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <button
-            onClick={() => onNavigate("wizard")}
+            onClick={handleStartWizard}
             className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-emerald-700 font-black text-sm sm:text-base hover:bg-white/90 transition-all shadow-md hover:scale-[1.02]"
           >
             {isAr ? "ابدأ التقييم الآن مجاناً" : "Start Free Assessment Now"}

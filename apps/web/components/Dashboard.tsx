@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "./LanguageContext";
+import { useAuth } from "./AuthContext";
 import { CheckInModal } from "./CheckInModal";
 import {
   TrendingDown,
@@ -17,18 +18,27 @@ import {
 
 export function Dashboard() {
   const { locale } = useLanguage();
+  const { profile } = useAuth();
   const isAr = locale === "ar";
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
 
-  // 7-day rolling weight data (demonstrating calm handling of water retention spikes)
+  // 7-day rolling weight data centered on user's real profile weight
+  const userWeight = Number(profile?.currentWeightKg) || 84.0;
   const weightLogs = [
-    { day: "Sat", weight: 85.0, waterSpike: false },
-    { day: "Sun", weight: 84.8, waterSpike: false },
-    { day: "Mon", weight: 85.3, waterSpike: true, reason: "High sodium Egyptian feast / water retention" },
-    { day: "Tue", weight: 84.6, waterSpike: false },
-    { day: "Wed", weight: 84.4, waterSpike: false },
-    { day: "Thu", weight: 84.2, waterSpike: false },
-    { day: "Fri", weight: 84.1, waterSpike: false },
+    { day: "Sat", weight: +(userWeight + 0.8).toFixed(1), waterSpike: false },
+    { day: "Sun", weight: +(userWeight + 0.6).toFixed(1), waterSpike: false },
+    {
+      day: "Mon",
+      weight: +(userWeight + 1.2).toFixed(1),
+      waterSpike: true,
+      reason: isAr
+        ? "وجبة مصرية عالية الصوديوم / احتباس ماء طبيعي مؤقت"
+        : "High sodium Egyptian feast / water retention",
+    },
+    { day: "Tue", weight: +(userWeight + 0.4).toFixed(1), waterSpike: false },
+    { day: "Wed", weight: +(userWeight + 0.2).toFixed(1), waterSpike: false },
+    { day: "Thu", weight: +(userWeight).toFixed(1), waterSpike: false },
+    { day: "Fri", weight: +(userWeight - 0.2).toFixed(1), waterSpike: false },
   ];
 
   const rollingAverage = (

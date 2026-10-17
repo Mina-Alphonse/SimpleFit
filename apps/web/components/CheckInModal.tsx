@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "./LanguageContext";
+import { useAuth } from "./AuthContext";
 import {
   evaluateCheckIn,
   CheckInEvaluationResult,
@@ -30,13 +31,22 @@ interface CheckInModalProps {
 
 export function CheckInModal({ isOpen, onClose, onPlanUpdated }: CheckInModalProps) {
   const { locale, dir } = useLanguage();
+  const { profile, setProfile } = useAuth();
   const isAr = locale === "ar";
 
-  // Check-in Form State
-  const [cadence, setCadence] = useState<PlanCadence>("weekly");
-  const [currentWeight, setCurrentWeight] = useState(83.5);
-  const [previousWeight, setPreviousWeight] = useState(84.5);
-  const [targetCalories, setTargetCalories] = useState(2200);
+  // Check-in Form State - automatically bound to user's profile
+  const [cadence, setCadence] = useState<PlanCadence>(
+    (profile?.planCadence as PlanCadence) || "weekly"
+  );
+  const [currentWeight, setCurrentWeight] = useState(
+    Number(profile?.currentWeightKg) || 83.5
+  );
+  const [previousWeight, setPreviousWeight] = useState(
+    Number(profile?.currentWeightKg) || 84.5
+  );
+  const [targetCalories, setTargetCalories] = useState(
+    profile?.targetCalories || 2050
+  );
   const [adherenceScore, setAdherenceScore] = useState(85);
   const [energyRating, setEnergyRating] = useState<"low" | "normal" | "high">("normal");
   const [hungerRating, setHungerRating] = useState<"low" | "manageable" | "high">("manageable");
@@ -46,7 +56,14 @@ export function CheckInModal({ isOpen, onClose, onPlanUpdated }: CheckInModalPro
   const [appliedSuccess, setAppliedSuccess] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (profile) {
+      if (profile.planCadence) setCadence(profile.planCadence as PlanCadence);
+      if (profile.targetCalories) setTargetCalories(profile.targetCalories);
+      if (profile.currentWeightKg) {
+        setCurrentWeight(Number(profile.currentWeightKg));
+        setPreviousWeight(Number(profile.currentWeightKg));
+      }
+    } else if (typeof window !== "undefined") {
       const saved = localStorage.getItem("simplefit_dietary_pref");
       if (saved) {
         try {
@@ -56,7 +73,7 @@ export function CheckInModal({ isOpen, onClose, onPlanUpdated }: CheckInModalPro
         } catch {}
       }
     }
-  }, [isOpen]);
+  }, [isOpen, profile]);
 
   if (!isOpen) return null;
 
@@ -79,6 +96,18 @@ export function CheckInModal({ isOpen, onClose, onPlanUpdated }: CheckInModalPro
   const handleApplyAdjustment = () => {
     if (!evaluation) return;
     setTargetCalories(evaluation.newTargetCalories);
+
+    if (profile) {
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              targetCalories: evaluation.newTargetCalories,
+              currentWeightKg: String(currentWeight),
+            }
+          : null
+      );
+    }
 
     // Save updated calories to localStorage
     if (typeof window !== "undefined") {

@@ -19,6 +19,11 @@ export interface Profile {
   activityLevel: string;
   fitnessExperience: string;
   trainingEnvironment: string;
+  trainingDaysPerWeek?: number;
+  sessionDurationMins?: number;
+  caloricTier?: string;
+  planCadence?: string;
+  budgetTier?: string;
   targetCalories: number;
   targetProteinG: number;
   targetCarbsG: number;
@@ -30,7 +35,9 @@ export interface Profile {
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
   activeMealPlan: any | null;
+  setActiveMealPlan: React.Dispatch<React.SetStateAction<any | null>>;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
@@ -39,6 +46,9 @@ interface AuthContextType {
   refreshSession: () => Promise<void>;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
+  authModalMode: "signin" | "signup";
+  setAuthModalMode: (mode: "signin" | "signup") => void;
+  openAuthModal: (mode?: "signin" | "signup") => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,6 +59,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [activeMealPlan, setActiveMealPlan] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authModalMode, setAuthModalMode] = useState<"signin" | "signup">("signin");
+
+  const openAuthModal = (mode: "signin" | "signup" = "signin") => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
 
   const refreshSession = useCallback(async () => {
     try {
@@ -146,7 +162,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         profile,
+        setProfile,
         activeMealPlan,
+        setActiveMealPlan,
         isLoading,
         login,
         register,
@@ -155,6 +173,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshSession,
         isAuthModalOpen,
         setIsAuthModalOpen,
+        authModalMode,
+        setAuthModalMode,
+        openAuthModal,
       }}
     >
       {children}

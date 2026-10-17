@@ -32,7 +32,7 @@ interface HeaderProps {
 export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderProps) {
   const { locale, toggleLocale, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const { user, logout, setIsAuthModalOpen } = useAuth();
+  const { user, profile, logout, openAuthModal } = useAuth();
   const isAr = locale === "ar";
 
   const navItems = [
@@ -55,32 +55,42 @@ export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderPro
           <Logo size="sm" variant="full" locale={locale} />
         </button>
 
-        {/* Desktop Navigation with comfortable margins */}
-        <nav className="hidden md:flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/60 shrink-0">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  isActive
-                    ? "bg-card text-foreground shadow-xs border border-border/80"
-                    : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? "text-primary" : ""}`} />
-                <span>{locale === "ar" ? item.labelAr : item.labelEn}</span>
-              </button>
-            );
-          })}
-        </nav>
+        {/* Desktop Navigation - Only visible to authenticated users with completed diagnostic profile */}
+        {user && profile && (
+          <nav className="hidden md:flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/60 shrink-0">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    isActive
+                      ? "bg-card text-foreground shadow-xs border border-border/80"
+                      : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-primary" : ""}`} />
+                  <span>{locale === "ar" ? item.labelAr : item.labelEn}</span>
+                </button>
+              );
+            })}
+          </nav>
+        )}
+
+        {/* If user logged in but hasn't completed diagnostic profile */}
+        {user && !profile && (
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+            <span>{isAr ? "خطوة أخيرة: أكمل التقييم الذكي لتفعيل خطتك" : "Action Required: Complete Diagnostic Assessment"}</span>
+          </div>
+        )}
 
         {/* Language & Auth Actions */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Grocery list quick trigger */}
-          {onOpenGroceryList && (
+          {/* Grocery list quick trigger - Only if logged in with profile */}
+          {user && profile && onOpenGroceryList && (
             <button
               onClick={onOpenGroceryList}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold transition-colors"
@@ -130,13 +140,21 @@ export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderPro
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all shadow-xs"
-            >
-              <UserIcon className="w-3.5 h-3.5" />
-              <span>{isAr ? "دخول / حساب" : "Sign In"}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => openAuthModal("signin")}
+                className="px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold transition-colors"
+              >
+                {isAr ? "تسجيل الدخول" : "Sign In"}
+              </button>
+              <button
+                onClick={() => openAuthModal("signup")}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all shadow-xs"
+              >
+                <UserIcon className="w-3.5 h-3.5" />
+                <span>{isAr ? "إنشاء حساب" : "Sign Up"}</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "./LanguageContext";
+import { useAuth } from "./AuthContext";
 import {
   calculateIngredientSwap,
   findPaginatedIngredientSwaps,
   getFoodNutritionGroup,
   FoodNutritionPer100g,
+  generatePersonalizedMealPlan,
 } from "@simplefit/shared";
 import { CheckInModal } from "./CheckInModal";
 import {
@@ -171,6 +173,7 @@ interface MealPlannerProps {
 
 export function MealPlanner({ onOpenGroceryList }: MealPlannerProps = {}) {
   const { locale } = useLanguage();
+  const { profile, activeMealPlan } = useAuth();
   const isAr = locale === "ar";
 
   const [cadence, setCadence] = useState<"weekly" | "biweekly" | "monthly">("weekly");
@@ -219,13 +222,20 @@ export function MealPlanner({ onOpenGroceryList }: MealPlannerProps = {}) {
     }
   }, []);
 
+  // Sync cadence with user profile if present
+  useEffect(() => {
+    if (profile?.planCadence) {
+      setCadence(profile.planCadence as any);
+    }
+  }, [profile?.planCadence]);
+
   // When opening a swap modal, reset display limit to 5
   const handleOpenSwap = (mealId: string, item: MealItem) => {
     setSwapDisplayLimit(5);
     setSwappingItem({ mealId, item });
   };
 
-  // Sample Egyptian & Supermarket Meals State
+  // Planned Meals State: Defaults to a balanced layout, then binds dynamically to active plan
   const [meals, setMeals] = useState<PlannedMeal[]>([
     {
       id: "m-breakfast",
@@ -378,7 +388,44 @@ export function MealPlanner({ onOpenGroceryList }: MealPlannerProps = {}) {
     },
   ]);
 
-  // Comprehensive candidate food library across all required categories:
+  // Dynamically load meals from user's active PostgreSQL meal plan or quantitative generator
+  useEffect(() => {
+    if (activeMealPlan?.planDays && activeMealPlan.planDays.length > 0) {
+      const dayIndex = (selectedDay - 1) % activeMealPlan.planDays.length;
+      const dayData = activeMealPlan.planDays[dayIndex];
+      if (dayData && dayData.meals) {
+        setMeals(dayData.meals as any);
+        return;
+      }
+    }
+
+    // Dynamic fallback generation based on user's prescribed targets
+    if (profile?.targetCalories) {
+      const generated = generatePersonalizedMealPlan({
+        targetCalories: profile.targetCalories,
+        targetProteinG: profile.targetProteinG,
+        targetCarbsG: profile.targetCarbsG,
+        targetFatsG: profile.targetFatsG,
+        planCadence: cadence,
+        isChristianFasting: userDietary.isChristianFasting,
+        fastingSeafoodAllowed: userDietary.fastingSeafoodAllowed,
+        allergies: userDietary.allergies,
+        dislikedFoods: userDietary.dislikedFoods,
+      });
+
+      if (generated && generated.length > 0) {
+        const dayIndex = (selectedDay - 1) % generated.length;
+        setMeals(generated[dayIndex].meals as any);
+      }
+    }
+  }, [
+    activeMealPlan,
+    profile,
+    selectedDay,
+    cadence,
+    userDietary.isChristianFasting,
+    userDietary.fastingSeafoodAllowed,
+  ]);
   // Carbs, Fats, Proteins, Poultry, Healthy Cold Cuts, Seafood, Canned Foods, Vegetables, Fruits, Fasting Staples
   const allCandidates: FoodNutritionPer100g[] = [
     // --- CARBS ---
@@ -1070,29 +1117,64 @@ export function MealPlanner({ onOpenGroceryList }: MealPlannerProps = {}) {
             </div>
           )}
         </div>
+
+        {/* Day Selector Pill Strip */}
+        <div className="pt-2">
+          <label className="text-xs font-bold text-muted-foreground block mb-1.5">
+            {isAr ? "اختر اليوم لعرض وتعديل الوجبات المحسوبة:" : "Select Plan Day:"}
+          </label>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar">
+            {Array.from({ length: cadence === "weekly" ? 7 : cadence === "biweekly" ? 14 : 28 }).map((_, i) => {
+              const dayNum = i + 1;
+              const isSelected = selectedDay === dayNum;
+              return (
+                <button
+                  key={dayNum}
+                  type="button"
+                  onClick={() => setSelectedDay(dayNum)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-card border border-border text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span>{isAr ? `اليوم ${dayNum}` : `Day ${dayNum}`}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Daily Macro Progress Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-4 rounded-2xl bg-card border border-border shadow-xs text-center">
-          <span className="text-[11px] font-bold text-muted-foreground block">{isAr ? "السعرات اليومية" : "Total Calories"}</span>
+          <span className="text-[11px] font-bold text-muted-foreground block">{isAr ? "السعرات المحسوبة" : "Daily Calories"}</span>
           <span className="text-xl font-black text-foreground">{totalCalories}</span>
-          <span className="text-[10px] text-muted-foreground block">kcal</span>
+          <span className="text-[10px] text-muted-foreground block">
+            {profile?.targetCalories ? `${isAr ? "الهدف" : "Target"}: ${profile.targetCalories} kcal` : "kcal"}
+          </span>
         </div>
         <div className="p-4 rounded-2xl bg-card border border-border shadow-xs text-center">
           <span className="text-[11px] font-bold text-muted-foreground block">{isAr ? "البروتين" : "Protein"}</span>
           <span className="text-xl font-black text-primary">{Math.round(totalProtein)}g</span>
-          <span className="text-[10px] text-muted-foreground block">{isAr ? "هدف البناء" : "Target"}</span>
+          <span className="text-[10px] text-muted-foreground block">
+            {profile?.targetProteinG ? `${isAr ? "الهدف" : "Target"}: ${profile.targetProteinG}g` : isAr ? "هدف البناء" : "Target"}
+          </span>
         </div>
         <div className="p-4 rounded-2xl bg-card border border-border shadow-xs text-center">
           <span className="text-[11px] font-bold text-muted-foreground block">{isAr ? "الكربوهيدرات" : "Carbohydrates"}</span>
           <span className="text-xl font-black text-foreground">{Math.round(totalCarbs)}g</span>
-          <span className="text-[10px] text-muted-foreground block">{isAr ? "طاقة متوازنة" : "Energy"}</span>
+          <span className="text-[10px] text-muted-foreground block">
+            {profile?.targetCarbsG ? `${isAr ? "الهدف" : "Target"}: ${profile.targetCarbsG}g` : isAr ? "طاقة متوازنة" : "Energy"}
+          </span>
         </div>
         <div className="p-4 rounded-2xl bg-card border border-border shadow-xs text-center">
           <span className="text-[11px] font-bold text-muted-foreground block">{isAr ? "الدهون الصحية" : "Healthy Fats"}</span>
           <span className="text-xl font-black text-foreground">{Math.round(totalFats)}g</span>
-          <span className="text-[10px] text-muted-foreground block">{isAr ? "هرمونات وصحة" : "Hormones"}</span>
+          <span className="text-[10px] text-muted-foreground block">
+            {profile?.targetFatsG ? `${isAr ? "الهدف" : "Target"}: ${profile.targetFatsG}g` : isAr ? "هرمونات وصحة" : "Hormones"}
+          </span>
         </div>
       </div>
 

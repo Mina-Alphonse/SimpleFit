@@ -7,6 +7,7 @@ import {
   calculateTDEE,
   calculateTargetCalories,
   calculateMacroSplit,
+  generatePersonalizedMealPlan,
 } from "@simplefit/shared";
 
 export async function POST(req: NextRequest) {
@@ -100,6 +101,19 @@ export async function POST(req: NextRequest) {
       })
       .returning();
 
+    // 2. Generate Real Personalized Egyptian Meal Plan
+    const generatedDays = generatePersonalizedMealPlan({
+      targetCalories: calorieTarget.targetCalories,
+      targetProteinG: macros.proteinGrams,
+      targetCarbsG: macros.carbsGrams,
+      targetFatsG: macros.fatsGrams,
+      planCadence: data.planCadence,
+      isChristianFasting: Boolean(data.isChristianFasting),
+      fastingSeafoodAllowed: data.fastingSeafoodAllowed !== false,
+      allergies: data.allergies,
+      dislikedFoods: data.dislikedFoods,
+    });
+
     // 3. Deactivate previous meal plans and save active plan
     await db
       .update(mealPlans)
@@ -115,7 +129,7 @@ export async function POST(req: NextRequest) {
         proteinG: macros.proteinGrams,
         carbsG: macros.carbsGrams,
         fatsG: macros.fatsGrams,
-        planDays: body.planDays || [],
+        planDays: generatedDays,
         groceryList: body.groceryList || [],
         isActive: "true",
       })
@@ -125,6 +139,7 @@ export async function POST(req: NextRequest) {
       success: true,
       profile: savedProfile,
       mealPlan: savedPlan,
+      generatedDays,
       calculation: {
         bmr: bmr,
         tdee: tdee,

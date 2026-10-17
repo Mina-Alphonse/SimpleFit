@@ -6,7 +6,7 @@ import { useLanguage } from "./LanguageContext";
 import { X, Lock, Mail, User as UserIcon, Sparkles, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
 
 export function AuthModal() {
-  const { isAuthModalOpen, setIsAuthModalOpen, login, register, loginAsDemo } = useAuth();
+  const { isAuthModalOpen, setIsAuthModalOpen, login, register, loginAsDemo, authModalMode } = useAuth();
   const { locale } = useLanguage();
   const isAr = locale === "ar";
 
@@ -16,6 +16,12 @@ export function AuthModal() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (authModalMode) {
+      setTab(authModalMode);
+    }
+  }, [authModalMode, isAuthModalOpen]);
 
   if (!isAuthModalOpen) return null;
 

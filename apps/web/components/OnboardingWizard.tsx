@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "./LanguageContext";
+import { useAuth } from "./AuthContext";
 import {
   calculateBMR,
   calculateTDEE,
@@ -25,27 +26,34 @@ import {
   ArrowLeft,
   CheckCircle2,
   AlertTriangle,
+  Info,
 } from "lucide-react";
 
-export function OnboardingWizard() {
+interface OnboardingWizardProps {
+  onPlanGenerated?: (plan: any) => void;
+  isMandatory?: boolean;
+}
+
+export function OnboardingWizard({ onPlanGenerated, isMandatory }: OnboardingWizardProps) {
   const { locale, dir } = useLanguage();
+  const { refreshSession, setProfile, setActiveMealPlan } = useAuth();
   const isAr = locale === "ar";
 
   const [step, setStep] = useState(1);
 
-  // Form State
+  // Form State - Starts with clean/empty values so user actively completes diagnostic
   const [formData, setFormData] = useState({
-    age: 26,
-    biologicalSex: "male" as BiologicalSex,
-    heightCm: 178,
-    weightKg: 84,
-    goalWeightKg: 78,
-    activityLevel: "moderate" as ActivityLevel,
+    age: "" as unknown as number,
+    biologicalSex: "" as unknown as BiologicalSex,
+    heightCm: "" as unknown as number,
+    weightKg: "" as unknown as number,
+    goalWeightKg: "" as unknown as number,
+    activityLevel: "" as unknown as ActivityLevel,
     fitnessExperience: "beginner" as FitnessExperience,
-    trainingEnvironment: "gym" as TrainingEnvironment,
-    daysPerWeek: 4,
-    sessionDurationMins: "45",
-    caloricTier: "moderate_deficit" as CaloricTargetTier,
+    trainingEnvironment: "" as unknown as TrainingEnvironment,
+    daysPerWeek: "" as unknown as number,
+    sessionDurationMins: "45" as "30" | "45" | "60",
+    caloricTier: "" as unknown as CaloricTargetTier,
     planCadence: "weekly" as PlanCadence,
     budgetTier: "standard" as BudgetTier,
     injuryFlags: [] as string[],
@@ -59,34 +67,74 @@ export function OnboardingWizard() {
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // Compute live diagnostic preview
-  const bmr = calculateBMR({
-    weightKg: formData.weightKg,
-    heightCm: formData.heightCm,
-    age: formData.age,
-    biologicalSex: formData.biologicalSex,
-  });
+  // Validation rules per step
+  const isStep1Valid = Boolean(
+    formData.biologicalSex &&
+    Number(formData.age) >= 14 &&
+    Number(formData.age) <= 90 &&
+    Number(formData.heightCm) >= 120 &&
+    Number(formData.heightCm) <= 230 &&
+    Number(formData.weightKg) >= 35 &&
+    Number(formData.weightKg) <= 250
+  );
 
-  const tdee = calculateTDEE({
-    bmr,
-    activityLevel: formData.activityLevel,
-  });
+  const isStep2Valid = Boolean(formData.activityLevel);
 
-  const targetCalc = calculateTargetCalories({
-    bmr,
-    tdee,
-    caloricTier: formData.caloricTier,
-    biologicalSex: formData.biologicalSex,
-  });
+  const isStep3Valid = Boolean(
+    formData.trainingEnvironment &&
+    Number(formData.daysPerWeek) >= 2 &&
+    Number(formData.daysPerWeek) <= 6
+  );
 
-  const macros = calculateMacroSplit({
-    targetCalories: targetCalc.targetCalories,
-    weightKg: formData.weightKg,
-    goalWeightKg: formData.goalWeightKg,
-    proteinRatioGPerKg: 2.0,
-  });
+  const isStep4Valid = Boolean(formData.caloricTier);
+
+  const canProceed =
+    step === 1 ? isStep1Valid :
+    step === 2 ? isStep2Valid :
+    step === 3 ? isStep3Valid :
+    isStep4Valid;
+
+  // Compute live diagnostic preview safely
+  const hasBioStats = isStep1Valid;
+
+  const bmr = hasBioStats
+    ? calculateBMR({
+        weightKg: Number(formData.weightKg),
+        heightCm: Number(formData.heightCm),
+        age: Number(formData.age),
+        biologicalSex: formData.biologicalSex,
+      })
+    : 0;
+
+  const tdee = hasBioStats && formData.activityLevel
+    ? calculateTDEE({
+        bmr,
+        activityLevel: formData.activityLevel,
+      })
+    : 0;
+
+  const targetCalc = hasBioStats && tdee > 0 && formData.caloricTier
+    ? calculateTargetCalories({
+        bmr,
+        tdee,
+        caloricTier: formData.caloricTier,
+        biologicalSex: formData.biologicalSex,
+      })
+    : { targetCalories: 0, guardrailApplied: false, note: "" };
+
+  const macros = targetCalc.targetCalories > 0
+    ? calculateMacroSplit({
+        targetCalories: targetCalc.targetCalories,
+        weightKg: Number(formData.weightKg),
+        goalWeightKg: Number(formData.goalWeightKg) || Number(formData.weightKg),
+        proteinRatioGPerKg: 2.0,
+      })
+    : { proteinGrams: 0, carbsGrams: 0, fatsGrams: 0, caloriesFromProtein: 0, caloriesFromCarbs: 0, caloriesFromFats: 0 };
 
   const handleGenerateAndSave = async () => {
+    if (!isStep1Valid || !isStep2Valid || !isStep3Valid || !isStep4Valid) {
+      return;
+    }
     setIsSaving(true);
     try {
       const res = await fetch("/api/onboarding/save", {
@@ -94,15 +142,15 @@ export function OnboardingWizard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profile: {
-            age: formData.age,
+            age: Number(formData.age),
             biologicalSex: formData.biologicalSex,
-            heightCm: formData.heightCm,
-            weightKg: formData.weightKg,
-            goalWeightKg: formData.goalWeightKg,
+            heightCm: Number(formData.heightCm),
+            weightKg: Number(formData.weightKg),
+            goalWeightKg: Number(formData.goalWeightKg) || (Number(formData.weightKg) - 5),
             activityLevel: formData.activityLevel,
             fitnessExperience: formData.fitnessExperience,
             trainingEnvironment: formData.trainingEnvironment,
-            daysPerWeek: formData.daysPerWeek,
+            daysPerWeek: Number(formData.daysPerWeek),
             sessionDurationMins: formData.sessionDurationMins,
             caloricTier: formData.caloricTier,
             planCadence: formData.planCadence,
@@ -115,8 +163,12 @@ export function OnboardingWizard() {
           },
         }),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.success) {
         setSavedSuccess(true);
+        if (data.profile) setProfile(data.profile);
+        if (data.mealPlan) setActiveMealPlan(data.mealPlan);
+        await refreshSession();
       }
       // Save locally for instant client-side meal planner sync
       if (typeof window !== "undefined") {
@@ -127,7 +179,7 @@ export function OnboardingWizard() {
             fastingSeafoodAllowed: formData.fastingSeafoodAllowed,
             allergies: formData.allergies,
             dislikedFoods: formData.dislikedFoods,
-            daysPerWeek: formData.daysPerWeek,
+            daysPerWeek: Number(formData.daysPerWeek),
             planCadence: formData.planCadence,
             targetCalories: targetCalc.targetCalories,
             proteinG: macros.proteinGrams,
@@ -173,6 +225,23 @@ export function OnboardingWizard() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {/* Mandatory Notification Banner if user has no profile */}
+      {isMandatory && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-amber-800 dark:text-amber-200 text-xs sm:text-sm">
+          <Info className="w-5 h-5 shrink-0 text-amber-500 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-bold block">
+              {isAr ? "التقييم الذكي إلزامي لتفعيل حسابك وتوليد خطتك" : "Diagnostic Assessment Required"}
+            </span>
+            <span className="text-muted-foreground block">
+              {isAr
+                ? "حسابك جديد أو بدون خطة مسجلة. يرجى إدخال بياناتك الحيوية وهدفك بدقة لنتمكن من توليد جدول وجباتك وتمارينك المحسوب علمياً بالجرام."
+                : "You don't have an active plan yet. Please complete this diagnostic interview so SimpleFit can calculate your Mifflin-St Jeor macros and personalized plan."}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Step Progress Bar */}
       <div className="bg-card border border-border p-4 rounded-2xl shadow-xs">
         <div className="flex items-center justify-between mb-3 text-xs font-bold text-muted-foreground">
@@ -213,7 +282,7 @@ export function OnboardingWizard() {
               {/* Sex Selector */}
               <div>
                 <label className="text-xs font-bold text-muted-foreground block mb-2">
-                  {isAr ? "النوع البيولوجي" : "Biological Sex"}
+                  {isAr ? "النوع البيولوجي *" : "Biological Sex *"}
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -245,41 +314,59 @@ export function OnboardingWizard() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-bold text-muted-foreground block mb-1">
-                    {isAr ? "العمر" : "Age"}
+                    {isAr ? "العمر *" : "Age *"}
                   </label>
                   <input
                     type="number"
                     min={14}
                     max={90}
-                    value={formData.age}
-                    onChange={(e) => setFormData({ ...formData, age: Number(e.target.value) })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder={isAr ? "مثال: 26" : "e.g. 26"}
+                    value={formData.age ? formData.age : ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        age: e.target.value === "" ? ("" as any) : Number(e.target.value),
+                      })
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground block mb-1">
-                    {isAr ? "الطول (سم)" : "Height (cm)"}
+                    {isAr ? "الطول (سم) *" : "Height (cm) *"}
                   </label>
                   <input
                     type="number"
                     min={120}
                     max={230}
-                    value={formData.heightCm}
-                    onChange={(e) => setFormData({ ...formData, heightCm: Number(e.target.value) })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder={isAr ? "مثال: 178" : "e.g. 178"}
+                    value={formData.heightCm ? formData.heightCm : ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        heightCm: e.target.value === "" ? ("" as any) : Number(e.target.value),
+                      })
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground block mb-1">
-                    {isAr ? "الوزن الحالي (كجم)" : "Weight (kg)"}
+                    {isAr ? "الوزن الحالي (كجم) *" : "Weight (kg) *"}
                   </label>
                   <input
                     type="number"
                     min={35}
                     max={250}
-                    value={formData.weightKg}
-                    onChange={(e) => setFormData({ ...formData, weightKg: Number(e.target.value) })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder={isAr ? "مثال: 84" : "e.g. 84"}
+                    value={formData.weightKg ? formData.weightKg : ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        weightKg: e.target.value === "" ? ("" as any) : Number(e.target.value),
+                      })
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -292,9 +379,15 @@ export function OnboardingWizard() {
                   type="number"
                   min={35}
                   max={250}
-                  value={formData.goalWeightKg}
-                  onChange={(e) => setFormData({ ...formData, goalWeightKg: Number(e.target.value) })}
-                  className="w-full sm:w-1/2 px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder={isAr ? "مثال: 78 (اختياري)" : "e.g. 78 (optional)"}
+                  value={formData.goalWeightKg ? formData.goalWeightKg : ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      goalWeightKg: e.target.value === "" ? ("" as any) : Number(e.target.value),
+                    })
+                  }
+                  className="w-full sm:w-1/2 px-3 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -711,8 +804,13 @@ export function OnboardingWizard() {
             {step < 4 ? (
               <button
                 type="button"
+                disabled={!canProceed}
                 onClick={() => setStep(step + 1)}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-95 shadow-xs"
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                  !canProceed
+                    ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                    : "bg-primary text-primary-foreground hover:opacity-95 cursor-pointer"
+                }`}
               >
                 <span>{isAr ? "التالي" : "Next"}</span>
                 {dir === "rtl" ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
@@ -720,9 +818,13 @@ export function OnboardingWizard() {
             ) : (
               <button
                 type="button"
-                disabled={isSaving}
+                disabled={isSaving || !canProceed}
                 onClick={handleGenerateAndSave}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-95 shadow-md shadow-primary/20 disabled:opacity-60"
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md ${
+                  !canProceed || isSaving
+                    ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                    : "bg-primary text-primary-foreground hover:opacity-95 shadow-primary/20 cursor-pointer"
+                }`}
               >
                 <Sparkles className="w-4 h-4" />
                 <span>
@@ -747,75 +849,116 @@ export function OnboardingWizard() {
               <span>{isAr ? "حسابات المحرك الكمي الفورية" : "Live Engine Preview"}</span>
             </div>
 
-            <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border/80">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase">
-                  {isAr ? "معدل الحرق الأساسي (BMR)" : "Basal Metabolic Rate"}
-                </span>
-                <div className="text-2xl font-black mt-1 text-foreground">
-                  {bmr} <span className="text-xs font-normal text-muted-foreground">{isAr ? "سعرة" : "kcal"}</span>
+            {!hasBioStats ? (
+              <div className="p-6 rounded-2xl bg-muted/40 border border-dashed border-border text-center space-y-3">
+                <Scale className="w-8 h-8 text-primary/60 mx-auto" />
+                <div className="font-bold text-sm text-foreground">
+                  {isAr ? "بانتظار إدخال البيانات الحيوية" : "Awaiting Biological Stats"}
                 </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {isAr
+                    ? "أدخل النوع، العمر، الطول، والوزن في الخطوة الأولى لحساب معدل الحرق اليومي (BMR و TDEE) واحتياجك من السعرات والماكروز تلقائياً."
+                    : "Fill in your sex, age, height, and weight in Step 1 to calculate your live Mifflin-St Jeor metabolic rate and prescribed macros."}
+                </p>
               </div>
-
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border/80">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase">
-                  {isAr ? "احتياج المحافظة (TDEE)" : "Maintenance (TDEE)"}
-                </span>
-                <div className="text-2xl font-black mt-1 text-foreground">
-                  {tdee} <span className="text-xs font-normal text-muted-foreground">{isAr ? "سعرة" : "kcal"}</span>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-muted/40 border border-border/80">
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase">
+                    {isAr ? "معدل الحرق الأساسي (BMR)" : "Basal Metabolic Rate"}
+                  </span>
+                  <div className="text-2xl font-black mt-1 text-foreground">
+                    {bmr} <span className="text-xs font-normal text-muted-foreground">{isAr ? "سعرة" : "kcal"}</span>
+                  </div>
                 </div>
+
+                <div className="p-4 rounded-2xl bg-muted/40 border border-border/80">
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase">
+                    {isAr ? "احتياج المحافظة (TDEE)" : "Maintenance (TDEE)"}
+                  </span>
+                  <div className="text-2xl font-black mt-1 text-foreground">
+                    {tdee > 0 ? (
+                      <>
+                        {tdee} <span className="text-xs font-normal text-muted-foreground">{isAr ? "سعرة" : "kcal"}</span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{isAr ? "اختر مستوى النشاط" : "Select activity level"}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30">
+                  <span className="text-[11px] font-bold text-primary uppercase">
+                    {isAr ? "السعرات المستهدفة المحسوبة" : "Target Prescribed Calories"}
+                  </span>
+                  <div className="text-3xl font-black mt-1 text-primary">
+                    {targetCalc.targetCalories > 0 ? (
+                      <>
+                        {targetCalc.targetCalories}{" "}
+                        <span className="text-xs font-normal text-muted-foreground">{isAr ? "سعرة/يوم" : "kcal/day"}</span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{isAr ? "اختر هدف السعرات (الخطوة 4)" : "Select calorie goal (Step 4)"}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Guardrail Alert */}
+                {targetCalc.guardrailApplied && (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{targetCalc.note}</span>
+                  </div>
+                )}
+
+                {/* Macro Split */}
+                {macros.proteinGrams > 0 && (
+                  <div className="p-4 rounded-2xl bg-card border border-border space-y-2 text-xs">
+                    <div className="font-bold mb-2 text-foreground">
+                      {isAr ? "توزيع المغذيات الدقيقة (Macros):" : "Macronutrient Distribution:"}
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-b border-border/50">
+                      <span className="text-muted-foreground">{isAr ? "بروتين (2 جم/كجم):" : "Protein (2g/kg):"}</span>
+                      <span className="font-bold text-primary">{macros.proteinGrams}g</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-b border-border/50">
+                      <span className="text-muted-foreground">{isAr ? "كربوهيدرات:" : "Carbs:"}</span>
+                      <span className="font-bold text-foreground">{macros.carbsGrams}g</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-muted-foreground">{isAr ? "دهون صحية:" : "Fats (25%):"}</span>
+                      <span className="font-bold text-foreground">{macros.fatsGrams}g</span>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30">
-                <span className="text-[11px] font-bold text-primary uppercase">
-                  {isAr ? "السعرات المستهدفة المحسوبة" : "Target Prescribed Calories"}
-                </span>
-                <div className="text-3xl font-black mt-1 text-primary">
-                  {targetCalc.targetCalories} <span className="text-xs font-normal text-muted-foreground">{isAr ? "سعرة/يوم" : "kcal/day"}</span>
-                </div>
-              </div>
-
-              {/* Guardrail Alert */}
-              {targetCalc.guardrailApplied && (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{targetCalc.note}</span>
-                </div>
-              )}
-
-              {/* Macro Split */}
-              <div className="p-4 rounded-2xl bg-card border border-border space-y-2 text-xs">
-                <div className="font-bold mb-2 text-foreground">
-                  {isAr ? "توزيع المغذيات الدقيقة (Macros):" : "Macronutrient Distribution:"}
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-border/50">
-                  <span className="text-muted-foreground">{isAr ? "بروتين (2 جم/كجم):" : "Protein (2g/kg):"}</span>
-                  <span className="font-bold text-primary">{macros.proteinGrams}g</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-border/50">
-                  <span className="text-muted-foreground">{isAr ? "كربوهيدرات:" : "Carbs:"}</span>
-                  <span className="font-bold text-foreground">{macros.carbsGrams}g</span>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-muted-foreground">{isAr ? "دهون صحية:" : "Fats (25%):"}</span>
-                  <span className="font-bold text-foreground">{macros.fatsGrams}g</span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {completed && (
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 shrink-0" />
-              <span>
-                {savedSuccess
-                  ? isAr
-                    ? "تم حفظ واعتماد خطتك بنجاح في قاعدة البيانات وتفعيلها بالجدول!"
-                    : "Plan successfully saved to database & activated in your meal planner!"
-                  : isAr
-                  ? "تم اعتماد خطتك وتفعيلها بنجاح في جدول الوجبات والتمارين!"
-                  : "Plan successfully initialized! Access meals and workout logger in the tabs above."}
-              </span>
+            <div className="space-y-3">
+              <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <span className="font-semibold">
+                  {savedSuccess
+                    ? isAr
+                      ? "تم حفظ واعتماد خطتك بنجاح في قاعدة البيانات وتفعيلها بالجدول!"
+                      : "Plan successfully saved to database & activated in your meal planner!"
+                    : isAr
+                    ? "تم اعتماد خطتك وتفعيلها بنجاح في جدول الوجبات والتمارين!"
+                    : "Plan successfully initialized!"}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onPlanGenerated) onPlanGenerated(null);
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+              >
+                <span>{isAr ? "انتقل إلى جدول الوجبات والتمارين الآن" : "Go to Meal & Workout Plan Now"}</span>
+                {dir === "rtl" ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+              </button>
             </div>
           )}
         </div>

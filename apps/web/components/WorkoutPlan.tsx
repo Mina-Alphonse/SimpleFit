@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "./LanguageContext";
+import { useAuth } from "./AuthContext";
 import { WorkoutLogger } from "./WorkoutLogger";
 import {
   calculateExerciseSwap,
@@ -375,13 +376,22 @@ interface WorkoutDayPlan {
 
 export function WorkoutPlan() {
   const { locale } = useLanguage();
+  const { profile } = useAuth();
   const isAr = locale === "ar";
 
   // Mode: "plan" (Overview of Multi-Day Schedule) vs "logger" (Live workout execution)
   const [activeView, setActiveView] = useState<"plan" | "logger">("plan");
 
-  // Selected Frequency (2 to 6 days per week)
-  const [selectedFreq, setSelectedFreq] = useState<WorkoutFrequency>(4);
+  // Selected Frequency (2 to 6 days per week) - defaults to user profile or 4
+  const [selectedFreq, setSelectedFreq] = useState<WorkoutFrequency>(
+    (profile?.trainingDaysPerWeek as WorkoutFrequency) || 4
+  );
+
+  React.useEffect(() => {
+    if (profile?.trainingDaysPerWeek) {
+      setSelectedFreq(profile.trainingDaysPerWeek as WorkoutFrequency);
+    }
+  }, [profile?.trainingDaysPerWeek]);
 
   // Active Day in Schedule
   const [activeDayIndex, setActiveDayIndex] = useState(0);
