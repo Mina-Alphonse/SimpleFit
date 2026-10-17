@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { LanguageProvider, useLanguage } from "../components/LanguageContext";
+import { ThemeProvider } from "../components/ThemeContext";
 import { AuthProvider } from "../components/AuthContext";
 import { AuthModal } from "../components/AuthModal";
 import { GroceryListModal } from "../components/GroceryListModal";
@@ -75,10 +76,12 @@ function MainApp() {
 
 export default function Home() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <MainApp />
-      </AuthProvider>
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <MainApp />
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

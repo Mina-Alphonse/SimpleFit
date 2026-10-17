@@ -11,6 +11,7 @@ import { POST as registerHandler } from "../auth/register/route";
 import { POST as loginHandler } from "../auth/login/route";
 import { POST as demoHandler } from "../auth/demo/route";
 import { POST as onboardingSaveHandler } from "../onboarding/save/route";
+import { POST as checkinHandler } from "../checkin/route";
 import { signAccessToken, verifyToken, hashPassword, verifyPassword } from "../../../lib/auth";
 import { db, foods, exercises, sql } from "@simplefit/database";
 import { NextRequest } from "next/server";
@@ -346,6 +347,38 @@ describe("Phase 4: Backend APIs, Auth & Security Layer Integration Tests", () =>
       expect(json.profile.targetCalories).toBeGreaterThan(1200);
       expect(json.profile.targetProteinG).toBeGreaterThan(100);
       expect(json.mealPlan.isActive).toBe("true");
+    });
+  });
+
+  describe("13. Periodic Progress Check-In & Plan Calibration (/api/checkin)", () => {
+    it("evaluates user check-in across weekly cycle and returns calibrated targets", async () => {
+      const checkInPayload = {
+        currentWeightKg: 83.5,
+        previousWeightKg: 84.5,
+        cycleCadence: "weekly",
+        adherenceScore: 90,
+        energyRating: "normal",
+        hungerRating: "manageable",
+        previousTargetCalories: 2200,
+        notes: "Feeling great, energy is steady",
+      };
+
+      const req = new NextRequest("http://localhost:3000/api/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(checkInPayload),
+      });
+
+      const res = await checkinHandler(req);
+      expect(res.status).toBe(200);
+
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.evaluation.status).toBe("maintain");
+      expect(json.evaluation.weightDeltaKg).toBe(-1);
+      expect(json.evaluation.newTargetCalories).toBe(2200);
+      expect(json.evaluation.nextCheckInDays).toBe(7);
+      expect(json.evaluation.summaryAr).toBeDefined();
     });
   });
 });

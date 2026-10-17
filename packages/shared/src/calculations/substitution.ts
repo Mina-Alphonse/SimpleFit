@@ -5,15 +5,36 @@ export interface MacroProfile {
   fatsG: number;
 }
 
+export type ExtendedFoodCategory =
+  | "staple"
+  | "protein"
+  | "carb"
+  | "fat"
+  | "traditional_main"
+  | "dessert"
+  | "beverage"
+  | "snack"
+  | "fiber"
+  | "vegetable"
+  | "fruit"
+  | "poultry"
+  | "cold_cut"
+  | "seafood"
+  | "canned";
+
 export interface FoodNutritionPer100g {
   id?: string;
   nameEn: string;
   nameAr?: string;
-  category: "staple" | "protein" | "carb" | "fat" | "traditional_main" | "dessert" | "beverage" | "snack";
+  category: ExtendedFoodCategory;
+  subCategory?: string;
   caloriesPer100g: number;
   proteinPer100g: number;
   carbsPer100g: number;
   fatsPer100g: number;
+  fiberPer100g?: number;
+  isFastingFriendly?: boolean;
+  allergies?: string[];
   householdPortions?: Array<{
     unitEn: string;
     unitAr: string;
@@ -22,6 +43,7 @@ export interface FoodNutritionPer100g {
 }
 
 export interface IngredientSwapResult {
+  targetFood?: FoodNutritionPer100g;
   replacementGrams: number;
   sourceMacros: MacroProfile;
   replacementMacros: MacroProfile;
@@ -39,13 +61,43 @@ export interface IngredientSwapResult {
   };
 }
 
+export type NutritionFoodGroup = "carb" | "protein" | "fat" | "vegetable_fiber" | "fruit";
+
+/**
+ * Determine high-level nutritional group for strict same-type food substitutions
+ */
+export function getFoodNutritionGroup(food: FoodNutritionPer100g): NutritionFoodGroup {
+  if (food.category === "fruit") return "fruit";
+  if (food.category === "vegetable" || food.category === "fiber") return "vegetable_fiber";
+  if (
+    food.category === "protein" ||
+    food.category === "poultry" ||
+    food.category === "cold_cut" ||
+    food.category === "seafood"
+  ) {
+    return "protein";
+  }
+  if (food.category === "fat") return "fat";
+  if (food.category === "carb" || food.category === "staple") return "carb";
+
+  // For canned foods, snacks, or traditional items, inspect macro contribution
+  const carbCal = food.carbsPer100g * 4;
+  const proteinCal = food.proteinPer100g * 4;
+  const fatCal = food.fatsPer100g * 9;
+
+  if (proteinCal >= carbCal && proteinCal >= fatCal) return "protein";
+  if (fatCal >= carbCal && fatCal >= proteinCal) return "fat";
+  return "carb";
+}
+
 /**
  * Determine the primary macronutrient driver for a food item
  */
 export function getPrimaryMacro(food: FoodNutritionPer100g): "carbs" | "protein" | "fats" {
-  if (food.category === "protein") return "protein";
-  if (food.category === "carb" || food.category === "staple") return "carbs";
-  if (food.category === "fat") return "fats";
+  const group = getFoodNutritionGroup(food);
+  if (group === "protein") return "protein";
+  if (group === "carb" || group === "fruit" || group === "vegetable_fiber") return "carbs";
+  if (group === "fat") return "fats";
 
   const carbCal = food.carbsPer100g * 4;
   const proteinCal = food.proteinPer100g * 4;
@@ -87,10 +139,10 @@ export function calculateIngredientSwap(params: {
     targetGrams = Math.round((sourceMacros.fatsG / params.targetFood.fatsPer100g) * 100);
   } else {
     // Fallback to calorie matching if primary macro per 100g is zero
-    targetGrams = Math.round((sourceMacros.calories / params.targetFood.caloriesPer100g) * 100);
+    targetGrams = Math.round((sourceMacros.calories / Math.max(1, params.targetFood.caloriesPer100g)) * 100);
   }
 
-  // Guardrail against negative or zero grams
+  // Guardrail against negative or tiny grams
   targetGrams = Math.max(10, targetGrams);
 
   const tFactor = targetGrams / 100;
@@ -139,6 +191,7 @@ export function calculateIngredientSwap(params: {
   }
 
   return {
+    targetFood: params.targetFood,
     replacementGrams: targetGrams,
     sourceMacros,
     replacementMacros,
@@ -149,6 +202,123 @@ export function calculateIngredientSwap(params: {
     withinMacroThreshold,
     primaryMacro: primary,
     nearestHouseholdPortion,
+  };
+}
+
+export interface PaginatedSwapQuery {
+  sourceFood: FoodNutritionPer100g;
+  sourceGrams: number;
+  candidates: FoodNutritionPer100g[];
+  currentMealFoodNames?: string[];
+  currentMealFoodIds?: string[];
+  isChristianFasting?: boolean;
+  fastingSeafoodAllowed?: boolean;
+  userAllergies?: string[];
+  dislikedFoods?: string[];
+  offset?: number;
+  limit?: number; // max 5
+}
+
+export interface PaginatedSwapResponse {
+  items: IngredientSwapResult[];
+  totalAvailable: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+  nextOffset: number | null;
+}
+
+/**
+ * Filter and paginate ingredient alternatives adhering to all strict business rules:
+ * 1. Must be of the same type/food group.
+ * 2. Must guarantee ±5% macro matching.
+ * 3. Must NOT suggest any item already present in the current meal.
+ * 4. Must respect Christian Fasting rules (vegan/plant-based + seafood when allowed).
+ * 5. Must respect user allergies and disliked foods.
+ * 6. Returns <= 5 items per page with load more pagination.
+ */
+export function findPaginatedIngredientSwaps(params: PaginatedSwapQuery): PaginatedSwapResponse {
+  const sourceGroup = getFoodNutritionGroup(params.sourceFood);
+  const offset = params.offset ?? 0;
+  const limit = Math.min(params.limit ?? 5, 5); // enforce <= 5 items
+
+  const mealIds = new Set((params.currentMealFoodIds || []).filter(Boolean));
+  const mealNames = new Set(
+    (params.currentMealFoodNames || []).map((n) => n.trim().toLowerCase())
+  );
+  const userAllergies = new Set((params.userAllergies || []).map((a) => a.toLowerCase()));
+  const disliked = new Set((params.dislikedFoods || []).map((d) => d.toLowerCase()));
+
+  // Filter candidates strictly
+  const validCandidates = params.candidates.filter((candidate) => {
+    // 1. Cannot be the same food item
+    if (candidate.nameEn.toLowerCase() === params.sourceFood.nameEn.toLowerCase()) return false;
+    if (candidate.id && params.sourceFood.id && candidate.id === params.sourceFood.id) return false;
+
+    // 2. MUST NOT be already present in the current meal
+    if (candidate.id && mealIds.has(candidate.id)) return false;
+    if (mealNames.has(candidate.nameEn.toLowerCase())) return false;
+    if (candidate.nameAr && mealNames.has(candidate.nameAr.toLowerCase())) return false;
+
+    // 3. MUST be of the SAME TYPE/GROUP
+    const candGroup = getFoodNutritionGroup(candidate);
+    if (candGroup !== sourceGroup) return false;
+
+    // 4. Christian Fasting Filter
+    if (params.isChristianFasting) {
+      if (candidate.isFastingFriendly === false) return false;
+      // If seafood is not allowed in current fast, filter out seafood
+      if (
+        params.fastingSeafoodAllowed === false &&
+        (candidate.category === "seafood" || candidate.subCategory === "seafood")
+      ) {
+        return false;
+      }
+    }
+
+    // 5. User Allergies Filter
+    if (candidate.allergies && candidate.allergies.some((a) => userAllergies.has(a.toLowerCase()))) {
+      return false;
+    }
+
+    // 6. Disliked Foods Filter
+    if (
+      disliked.has(candidate.nameEn.toLowerCase()) ||
+      (candidate.nameAr && disliked.has(candidate.nameAr.toLowerCase()))
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  // Calculate swaps and keep those within ±5%
+  const matchingSwaps: IngredientSwapResult[] = [];
+  for (const candidate of validCandidates) {
+    const swap = calculateIngredientSwap({
+      sourceFood: params.sourceFood,
+      sourceGrams: params.sourceGrams,
+      targetFood: candidate,
+    });
+    if (swap.withinMacroThreshold) {
+      matchingSwaps.push(swap);
+    }
+  }
+
+  // Sort by closest macro delta
+  matchingSwaps.sort((a, b) => Math.abs(a.calorieDelta) - Math.abs(b.calorieDelta));
+
+  const totalAvailable = matchingSwaps.length;
+  const pagedItems = matchingSwaps.slice(offset, offset + limit);
+  const nextOffset = offset + limit < totalAvailable ? offset + limit : null;
+
+  return {
+    items: pagedItems,
+    totalAvailable,
+    offset,
+    limit,
+    hasMore: nextOffset !== null,
+    nextOffset,
   };
 }
 
@@ -172,7 +342,7 @@ export interface MealOption {
 
 export interface WholeMealSwapMatch {
   meal: MealOption;
-  portionMultiplier: number; // Factor to scale meal (e.g. 0.95x or 1.05x) to match target
+  portionMultiplier: number;
   adjustedMacros: MacroProfile;
   calorieDelta: number;
   proteinDelta: number;
@@ -185,7 +355,7 @@ export interface WholeMealSwapMatch {
 export function calculateWholeMealSwap(params: {
   sourceMeal: MealOption;
   candidates: MealOption[];
-  maxTolerancePercent?: number; // default 5%
+  maxTolerancePercent?: number;
 }): WholeMealSwapMatch[] {
   const tolerance = params.maxTolerancePercent ?? 0.05;
   const matches: WholeMealSwapMatch[] = [];
@@ -194,10 +364,7 @@ export function calculateWholeMealSwap(params: {
     if (candidate.id === params.sourceMeal.id) continue;
     if (candidate.mealType !== params.sourceMeal.mealType) continue;
 
-    // Calculate portion multiplier to scale candidate's calories to match source meal
     const multiplier = Number((params.sourceMeal.calories / Math.max(1, candidate.calories)).toFixed(2));
-
-    // Cap scaling multiplier within practical range (0.75x to 1.35x)
     if (multiplier < 0.75 || multiplier > 1.35) continue;
 
     const adjustedMacros: MacroProfile = {
@@ -225,7 +392,6 @@ export function calculateWholeMealSwap(params: {
     });
   }
 
-  // Sort by closest calorie and protein match
   return matches.sort((a, b) => Math.abs(a.calorieDelta) + Math.abs(a.proteinDelta) * 4 - (Math.abs(b.calorieDelta) + Math.abs(b.proteinDelta) * 4));
 }
 
@@ -249,8 +415,6 @@ export interface ExerciseSwapOptions {
 
 /**
  * Level 3: Biomechanical Exercise Swap Engine
- * Swaps any exercise with a movement pattern & muscle equivalent,
- * supporting "Equipment Busy" and "Home Mode" toggles.
  */
 export function calculateExerciseSwap(params: {
   currentExercise: ExerciseDefinition;
@@ -260,31 +424,24 @@ export function calculateExerciseSwap(params: {
   const opts = params.options || {};
 
   return params.candidateLibrary.filter((candidate) => {
-    // 1. Exclude the current exercise itself
     if (candidate.id === params.currentExercise.id) return false;
-
-    // 2. Strict Biomechanical Equivalence: same movement pattern & primary muscle
     if (candidate.movementPattern !== params.currentExercise.movementPattern) return false;
     if (candidate.primaryMuscle !== params.currentExercise.primaryMuscle) return false;
 
-    // 3. Equipment Busy Mode: must require DIFFERENT equipment than current exercise
     if (opts.equipmentBusyMode && candidate.equipment === params.currentExercise.equipment) {
       return false;
     }
 
-    // 4. Home Mode: must use dumbbells, resistance bands, or bodyweight only
     if (opts.homeMode && !["dumbbell", "bodyweight", "bands"].includes(candidate.equipment)) {
       return false;
     }
 
-    // 5. User equipment availability constraint
     if (opts.userAvailableEquipment && opts.userAvailableEquipment.length > 0) {
       if (!opts.userAvailableEquipment.includes(candidate.equipment)) {
         return false;
       }
     }
 
-    // 6. Injury filters (e.g., knee_pain filters out deep barbell back squats)
     if (opts.injuryFlags && opts.injuryFlags.length > 0) {
       if (opts.injuryFlags.includes("knee_pain") && candidate.equipment === "barbell" && candidate.movementPattern === "squat") {
         return false;

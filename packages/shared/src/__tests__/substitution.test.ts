@@ -3,6 +3,7 @@ import {
   calculateIngredientSwap,
   calculateWholeMealSwap,
   calculateExerciseSwap,
+  findPaginatedIngredientSwaps,
   FoodNutritionPer100g,
   MealOption,
   ExerciseDefinition,
@@ -281,4 +282,147 @@ describe("Phase 3: The 3-Level Smart Substitution Engine (±5% Macro Matching)",
       expect(kneeSwaps.length).toBe(0);
     });
   });
+
+  describe("Level 1 Extended: Paginated Swaps, Same-Type & No-Duplicate Meal Rules", () => {
+    const rice: FoodNutritionPer100g = {
+      id: "f-rice",
+      nameEn: "White Rice",
+      category: "carb",
+      caloriesPer100g: 130,
+      proteinPer100g: 2.7,
+      carbsPer100g: 28,
+      fatsPer100g: 0.3,
+    };
+
+    const oats: FoodNutritionPer100g = {
+      id: "f-oats",
+      nameEn: "Rolled Oats",
+      category: "carb",
+      caloriesPer100g: 389,
+      proteinPer100g: 16.9,
+      carbsPer100g: 66,
+      fatsPer100g: 6.9,
+    };
+
+    const sweetPotato: FoodNutritionPer100g = {
+      id: "f-potato",
+      nameEn: "Sweet Potato",
+      category: "carb",
+      caloriesPer100g: 86,
+      proteinPer100g: 1.6,
+      carbsPer100g: 20,
+      fatsPer100g: 0.1,
+    };
+
+    const chickenBreast: FoodNutritionPer100g = {
+      id: "f-chicken",
+      nameEn: "Chicken Breast",
+      category: "poultry",
+      caloriesPer100g: 165,
+      proteinPer100g: 31,
+      carbsPer100g: 0,
+      fatsPer100g: 3.6,
+      isFastingFriendly: false,
+    };
+
+    const boiledEggs: FoodNutritionPer100g = {
+      id: "f-eggs",
+      nameEn: "Boiled Eggs",
+      category: "protein",
+      caloriesPer100g: 143,
+      proteinPer100g: 12.6,
+      carbsPer100g: 0.8,
+      fatsPer100g: 9.5,
+      isFastingFriendly: false,
+      allergies: ["eggs"],
+    };
+
+    const fulMedames: FoodNutritionPer100g = {
+      id: "f-ful",
+      nameEn: "Ful Medames",
+      category: "protein",
+      caloriesPer100g: 110,
+      proteinPer100g: 7.6,
+      carbsPer100g: 19.5,
+      fatsPer100g: 0.8,
+      isFastingFriendly: true,
+    };
+
+    it("enforces strict same-type food substitutions (carbs only for carbs)", () => {
+      const result = findPaginatedIngredientSwaps({
+        sourceFood: rice,
+        sourceGrams: 150,
+        candidates: [oats, sweetPotato, chickenBreast, boiledEggs],
+      });
+
+      // Chicken and eggs must be excluded because they are protein, not carbs!
+      expect(result.items.every((item: any) => item.primaryMacro === "carbs")).toBe(true);
+      expect(result.items.some((item: any) => item.targetFood.nameEn === "Rolled Oats")).toBe(true);
+      expect(result.items.some((item: any) => item.targetFood.nameEn === "Chicken Breast")).toBe(false);
+    });
+
+    it("strictly excludes foods that are already in the current meal", () => {
+      const result = findPaginatedIngredientSwaps({
+        sourceFood: rice,
+        sourceGrams: 150,
+        candidates: [oats, sweetPotato],
+        currentMealFoodNames: ["Rolled Oats"],
+      });
+
+      // Rolled Oats must NOT be suggested because it is already in the meal!
+      expect(result.items.some((item: any) => item.targetFood.nameEn === "Rolled Oats")).toBe(false);
+      expect(result.items.some((item: any) => item.targetFood.nameEn === "Sweet Potato")).toBe(true);
+    });
+
+    it("respects Christian Fasting filter by removing animal products", () => {
+      const result = findPaginatedIngredientSwaps({
+        sourceFood: chickenBreast,
+        sourceGrams: 150,
+        candidates: [chickenBreast, boiledEggs, fulMedames],
+        isChristianFasting: true,
+      });
+
+      // Only fasting-friendly protein (Ful Medames) can remain
+      expect(result.items.every((item: any) => item.targetFood.isFastingFriendly === true)).toBe(true);
+      expect(result.items.some((item: any) => item.targetFood.nameEn === "Ful Medames")).toBe(true);
+      expect(result.items.some((item: any) => item.targetFood.nameEn === "Boiled Eggs")).toBe(false);
+    });
+
+    it("enforces max 5 alternatives per page with pagination", () => {
+      // Create 8 carb candidates
+      const mockCarbs: FoodNutritionPer100g[] = Array.from({ length: 8 }).map((_, i) => ({
+        id: `f-carb-${i}`,
+        nameEn: `Carb Item ${i}`,
+        category: "carb",
+        caloriesPer100g: 100,
+        proteinPer100g: 2,
+        carbsPer100g: 22,
+        fatsPer100g: 0.5,
+      }));
+
+      const page1 = findPaginatedIngredientSwaps({
+        sourceFood: rice,
+        sourceGrams: 150,
+        candidates: mockCarbs,
+        limit: 5,
+        offset: 0,
+      });
+
+      expect(page1.items.length).toBeLessThanOrEqual(5);
+      expect(page1.hasMore).toBe(true);
+      expect(page1.nextOffset).toBe(5);
+
+      const page2 = findPaginatedIngredientSwaps({
+        sourceFood: rice,
+        sourceGrams: 150,
+        candidates: mockCarbs,
+        limit: 5,
+        offset: page1.nextOffset!,
+      });
+
+      expect(page2.items.length).toBe(3);
+      expect(page2.hasMore).toBe(false);
+    });
+  });
 });
+

@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useLanguage } from "./LanguageContext";
+import { CheckInModal } from "./CheckInModal";
 import {
   TrendingDown,
   Flame,
@@ -11,11 +12,13 @@ import {
   Info,
   Footprints,
   Dumbbell,
+  Scale,
 } from "lucide-react";
 
 export function Dashboard() {
   const { locale } = useLanguage();
   const isAr = locale === "ar";
+  const [isCheckInOpen, setIsCheckInOpen] = useState(false);
 
   // 7-day rolling weight data (demonstrating calm handling of water retention spikes)
   const weightLogs = [
@@ -135,6 +138,38 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Check-In Cycle Banner */}
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-primary/10 via-card to-card border border-primary/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-bold text-primary mb-1">
+            <Calendar className="w-4 h-4" />
+            <span>{isAr ? "المراجعة الدورية المنتظمة" : "Periodic Progress Calibration"}</span>
+          </div>
+          <h4 className="font-bold text-base text-foreground">
+            {isAr ? "موعد المراجعة الدورية القادم: بعد يومين" : "Next Cycle Check-In: in 2 days"}
+          </h4>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {isAr
+              ? "سجل وزنك والتزامك بالخطة لمعايرة السعرات وتعديل الوجبات تلقائياً."
+              : "Log your weight and adherence to automatically calibrate target calories and meals."}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsCheckInOpen(true)}
+          className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-95 shadow-xs shrink-0 flex items-center gap-2"
+        >
+          <Scale className="w-3.5 h-3.5" />
+          <span>{isAr ? "تسجيل المراجعة الآن" : "Start Check-In Now"}</span>
+        </button>
+      </div>
+
+      <CheckInModal
+        isOpen={isCheckInOpen}
+        onClose={() => setIsCheckInOpen(false)}
+      />
     </div>
   );
 }

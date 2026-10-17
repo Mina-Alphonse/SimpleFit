@@ -49,6 +49,10 @@ export function OnboardingWizard() {
     planCadence: "weekly" as PlanCadence,
     budgetTier: "standard" as BudgetTier,
     injuryFlags: [] as string[],
+    isChristianFasting: false,
+    fastingSeafoodAllowed: true,
+    allergies: [] as string[],
+    dislikedFoods: [] as string[],
   });
 
   const [completed, setCompleted] = useState(false);
@@ -104,12 +108,33 @@ export function OnboardingWizard() {
             planCadence: formData.planCadence,
             budgetTier: formData.budgetTier,
             injuryFlags: formData.injuryFlags,
-            allergies: [],
+            allergies: formData.allergies,
+            dislikedFoods: formData.dislikedFoods,
+            isChristianFasting: formData.isChristianFasting,
+            fastingSeafoodAllowed: formData.fastingSeafoodAllowed,
           },
         }),
       });
       if (res.ok) {
         setSavedSuccess(true);
+      }
+      // Save locally for instant client-side meal planner sync
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "simplefit_dietary_pref",
+          JSON.stringify({
+            isChristianFasting: formData.isChristianFasting,
+            fastingSeafoodAllowed: formData.fastingSeafoodAllowed,
+            allergies: formData.allergies,
+            dislikedFoods: formData.dislikedFoods,
+            daysPerWeek: formData.daysPerWeek,
+            planCadence: formData.planCadence,
+            targetCalories: targetCalc.targetCalories,
+            proteinG: macros.proteinGrams,
+            carbsG: macros.carbsGrams,
+            fatsG: macros.fatsGrams,
+          })
+        );
       }
     } catch (err) {
       console.error("Save error:", err);
@@ -125,6 +150,24 @@ export function OnboardingWizard() {
       injuryFlags: prev.injuryFlags.includes(flag)
         ? prev.injuryFlags.filter((f) => f !== flag)
         : [...prev.injuryFlags, flag],
+    }));
+  };
+
+  const toggleAllergy = (allergy: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      allergies: prev.allergies.includes(allergy)
+        ? prev.allergies.filter((a) => a !== allergy)
+        : [...prev.allergies, allergy],
+    }));
+  };
+
+  const toggleDislike = (dislike: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      dislikedFoods: prev.dislikedFoods.includes(dislike)
+        ? prev.dislikedFoods.filter((d) => d !== dislike)
+        : [...prev.dislikedFoods, dislike],
     }));
   };
 
@@ -369,19 +412,26 @@ export function OnboardingWizard() {
                   <label className="text-xs font-bold text-muted-foreground block mb-2">
                     {isAr ? "أيام التمرين أسبوعياً" : "Weekly Training Days"}
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[3, 4, 5].map((days) => (
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {[2, 3, 4, 5, 6].map((days) => (
                       <button
                         key={days}
                         type="button"
                         onClick={() => setFormData({ ...formData, daysPerWeek: days })}
-                        className={`py-2 rounded-xl border text-xs font-bold transition-all ${
+                        className={`py-2 rounded-xl border text-xs font-bold transition-all text-center ${
                           formData.daysPerWeek === days
                             ? "bg-primary/10 border-primary text-primary"
                             : "border-border hover:bg-muted"
                         }`}
                       >
-                        {isAr ? `${days} أيام` : `${days} Days`}
+                        <div>{days} {isAr ? "أيام" : "Days"}</div>
+                        <div className="text-[9px] font-normal text-muted-foreground hidden sm:block">
+                          {days === 2 && (isAr ? "فول بودي" : "Full Body")}
+                          {days === 3 && (isAr ? "٣ أيام" : "3x Body")}
+                          {days === 4 && (isAr ? "علوي/سفلي" : "Upper/Low")}
+                          {days === 5 && (isAr ? "PPL+UL" : "PPL+UL")}
+                          {days === 6 && (isAr ? "PPL×2" : "PPL×2")}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -528,6 +578,118 @@ export function OnboardingWizard() {
                       {isAr ? b.labelAr : b.labelEn}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Coptic Christian Fasting Mode */}
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-bold text-foreground">
+                      {isAr ? "نظام الصيام المسيحي (أكل صيامي قبطي)" : "Coptic Christian Fasting Plan"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isChristianFasting: !formData.isChristianFasting })}
+                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+                      formData.isChristianFasting ? "bg-primary justify-end" : "bg-muted justify-start"
+                    }`}
+                  >
+                    <span className="bg-white w-4 h-4 rounded-full shadow-md" />
+                  </button>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {isAr
+                    ? "عند تفعيل الصيام، يتم ضبط الخطة لتكون نباتية بالكامل (خالية من اللحوم، الدواجن، البيض، الألبان، والجبن) مع التركيز على البقوليات والبروتين النباتي."
+                    : "When enabled, your plan shifts to 100% plant-based/vegan meals (excluding meat, poultry, dairy, cheese, and eggs)."}
+                </p>
+
+                {formData.isChristianFasting && (
+                  <div className="pt-2 border-t border-primary/10 flex items-center justify-between">
+                    <span className="text-xs font-medium text-foreground">
+                      {isAr ? "السماح بالأسماك (أيام الصوم المصرح فيها كالميلاد والرسل)" : "Allow Seafood (fasting days where fish is permitted)"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, fastingSeafoodAllowed: !formData.fastingSeafoodAllowed })}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        formData.fastingSeafoodAllowed
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border text-muted-foreground"
+                      }`}
+                    >
+                      {formData.fastingSeafoodAllowed ? (isAr ? "مسموح ✓" : "Allowed ✓") : (isAr ? "نباتي فقط" : "Strict Vegan")}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Food Allergies */}
+              <div>
+                <label className="text-xs font-bold text-muted-foreground block mb-2">
+                  {isAr ? "حساسية الطعام (استبعاد تلقائي)" : "Food Allergies (Strict Exclusion)"}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "dairy", labelEn: "Dairy / Lactose", labelAr: "الألبان واللاكتوز" },
+                    { id: "gluten", labelEn: "Gluten / Wheat", labelAr: "الجلوتين والقمح" },
+                    { id: "eggs", labelEn: "Eggs", labelAr: "البيض" },
+                    { id: "seafood", labelEn: "Seafood / Fish", labelAr: "الأسماك والمأكولات البحرية" },
+                    { id: "nuts", labelEn: "Peanuts / Nuts", labelAr: "المكسرات والفول السوداني" },
+                    { id: "soy", labelEn: "Soy", labelAr: "الصويا" },
+                  ].map((item) => {
+                    const isSelected = formData.allergies.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => toggleAllergy(item.id)}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
+                          isSelected
+                            ? "bg-destructive/10 border-destructive text-destructive font-bold"
+                            : "border-border text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {isAr ? item.labelAr : item.labelEn} {isSelected && "✕"}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Disliked Foods */}
+              <div>
+                <label className="text-xs font-bold text-muted-foreground block mb-2">
+                  {isAr ? "أطعمة لا تفضل تناولها وتريد استبعادها تماماً" : "Foods you dislike and want to exclude"}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "tuna", labelEn: "Canned Tuna", labelAr: "التونة" },
+                    { id: "falafel", labelEn: "Ta'meya / Falafel", labelAr: "الطعمية" },
+                    { id: "oats", labelEn: "Rolled Oats", labelAr: "الشوفان" },
+                    { id: "quraish", labelEn: "Quraish Cheese", labelAr: "الجبنة القريش" },
+                    { id: "eggs", labelEn: "Boiled Eggs", labelAr: "البيض المسلوق" },
+                    { id: "eggplant", labelEn: "Eggplant", labelAr: "الباذنجان" },
+                    { id: "renga", labelEn: "Herring / Renga", labelAr: "الرنجة والفسيخ" },
+                  ].map((item) => {
+                    const isSelected = formData.dislikedFoods.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => toggleDislike(item.id)}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
+                          isSelected
+                            ? "bg-amber-500/10 border-amber-500 text-amber-500 font-bold"
+                            : "border-border text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {isAr ? item.labelAr : item.labelEn} {isSelected && "✕"}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

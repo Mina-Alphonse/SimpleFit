@@ -11,6 +11,8 @@ export type FitnessExperience = "beginner" | "intermediate" | "advanced";
 
 export type TrainingEnvironment = "gym" | "home_dumbbells" | "bodyweight";
 
+export type WorkoutFrequency = 2 | 3 | 4 | 5 | 6;
+
 export type CaloricTargetTier =
   | "gentle_deficit"     // -200 kcal
   | "moderate_deficit"   // -300 kcal
@@ -37,16 +39,36 @@ export interface FoodPortionUnit {
   gramsPerUnit: number;
 }
 
+export type FoodCategory =
+  | "staple"
+  | "protein"
+  | "carb"
+  | "fat"
+  | "traditional_main"
+  | "dessert"
+  | "beverage"
+  | "snack"
+  | "fiber"
+  | "vegetable"
+  | "fruit"
+  | "poultry"
+  | "cold_cut"
+  | "seafood"
+  | "canned";
+
 export interface FoodItem {
   id: string;
   nameEn: string;
   nameAr: string;
-  category: "staple" | "protein" | "carb" | "fat" | "traditional_main" | "dessert" | "beverage" | "snack";
+  category: FoodCategory;
+  subCategory?: string;
   caloriesPer100g: number;
   proteinPer100g: number;
   carbsPer100g: number;
   fatsPer100g: number;
   fiberPer100g?: number;
+  isFastingFriendly?: boolean; // Coptic Christian fasting compliance (plant-based / vegan + seafood)
+  allergies?: string[];        // ['dairy', 'gluten', 'eggs', 'seafood', 'nuts', 'soy']
   portionUnits: FoodPortionUnit[];
 }
 
@@ -59,4 +81,37 @@ export interface ExerciseItem {
   equipment: "barbell" | "dumbbell" | "cable" | "machine" | "bodyweight" | "bands";
   difficulty: "beginner" | "intermediate" | "advanced";
   alternativeIds: string[];
+}
+
+// User Profile Dietary & Fasting Preferences
+export interface UserDietaryPreferences {
+  isChristianFasting: boolean;      // صيام مسيحي / صيام الأقباط
+  fastingSeafoodAllowed?: boolean;  // هل مسموح بالأسماك (أيام الصوم المصرح فيها كالرومي وصوم الميلاد والرسل)
+  allergies: string[];              // ['dairy', 'gluten', 'eggs', 'seafood', 'nuts', 'soy']
+  dislikedFoods: string[];          // List of food names/IDs user dislikes
+}
+
+// Check-in Cycle & Plan Modification Types
+export interface CheckInSubmission {
+  currentWeightKg: number;
+  adherenceScore: number;           // 0 to 100 percentage
+  energyRating: "low" | "normal" | "high";
+  hungerRating: "low" | "manageable" | "high";
+  cycleCadence: PlanCadence;        // 'weekly' | 'biweekly' | 'monthly'
+  previousTargetCalories: number;
+  previousWeightKg: number;
+  notes?: string;
+}
+
+export interface CheckInEvaluationResult {
+  status: "maintain" | "adjust_deficit" | "adjust_surplus" | "increase_calories" | "boost_activity";
+  weightDeltaKg: number;
+  weeklyRateKg: number;
+  newTargetCalories: number;
+  calorieAdjustment: number;
+  suggestedStepDelta: number;
+  summaryEn: string;
+  summaryAr: string;
+  shouldModifyPlan: boolean;
+  nextCheckInDays: number;
 }

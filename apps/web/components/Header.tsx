@@ -14,7 +14,10 @@ import {
   User as UserIcon,
   LogOut,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "./ThemeContext";
 
 export type NavTab = "wizard" | "planner" | "workout" | "adherence" | "dashboard";
 
@@ -26,6 +29,7 @@ interface HeaderProps {
 
 export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderProps) {
   const { locale, toggleLocale, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const { user, logout, setIsAuthModalOpen } = useAuth();
   const isAr = locale === "ar";
 
@@ -90,6 +94,19 @@ export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderPro
               <span>{isAr ? "المشتريات" : "Groceries"}</span>
             </button>
           )}
+
+          {/* Theme Switcher (Dark / Light) */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center justify-center p-2 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold transition-colors"
+            title={theme === "dark" ? (isAr ? "الوضع المضيء" : "Light Mode") : (isAr ? "الوضع الليلي" : "Dark Mode")}
+          >
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-slate-700" />
+            )}
+          </button>
 
           {/* Language Switcher */}
           <button

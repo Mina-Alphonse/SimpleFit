@@ -37,6 +37,9 @@ export const OnboardingProfileSchema = z.object({
   budgetTier: BudgetTierSchema,
   injuryFlags: z.array(z.string()).default([]),
   allergies: z.array(z.string()).default([]),
+  dislikedFoods: z.array(z.string()).default([]),
+  isChristianFasting: z.boolean().default(false),
+  fastingSeafoodAllowed: z.boolean().default(true),
 });
 
 export type OnboardingProfileInput = z.infer<typeof OnboardingProfileSchema>;

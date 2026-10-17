@@ -1,7 +1,22 @@
 export interface SeedFoodItem {
   nameEn: string;
   nameAr: string;
-  category: "staple" | "protein" | "carb" | "fat" | "traditional_main" | "dessert" | "beverage" | "snack";
+  category:
+    | "staple"
+    | "protein"
+    | "carb"
+    | "fat"
+    | "traditional_main"
+    | "dessert"
+    | "beverage"
+    | "snack"
+    | "fiber"
+    | "vegetable"
+    | "fruit"
+    | "poultry"
+    | "cold_cut"
+    | "seafood"
+    | "canned";
   subCategory?: string;
   caloriesPer100g: string;
   proteinPer100g: string;
@@ -1303,4 +1318,292 @@ export const EGYPTIAN_FOODS_SEED: SeedFoodItem[] = [
       { unitEn: "4 Squares", unitAr: "٤ مربعات", grams: 40 },
     ],
   },
+
+  // ==================== HEALTHY COLD CUTS ====================
+  {
+    nameEn: "Americana Smoked Turkey Breast Deli Slices",
+    nameAr: "صدور ديك رومي مدخن أمريكانا (لانشون رومي صحي)",
+    category: "cold_cut",
+    subCategory: "cold_cut",
+    caloriesPer100g: "105",
+    proteinPer100g: "21.5",
+    carbsPer100g: "1.5",
+    fatsPer100g: "1.2",
+    householdPortions: [
+      { unitEn: "2 Slices", unitAr: "شريحتين رومي مدخن", grams: 50 },
+      { unitEn: "4 Slices", unitAr: "٤ شرائح رومي مدخن", grams: 100 },
+    ],
+  },
+  {
+    nameEn: "Americana Roast Beef Lean Deli Slices",
+    nameAr: "روست بيف بقري أمريكانا شرائح رفيعة",
+    category: "cold_cut",
+    subCategory: "cold_cut",
+    caloriesPer100g: "125",
+    proteinPer100g: "22.0",
+    carbsPer100g: "1.0",
+    fatsPer100g: "3.5",
+    householdPortions: [
+      { unitEn: "2 Slices", unitAr: "شريحتين روست بيف", grams: 50 },
+      { unitEn: "4 Slices", unitAr: "٤ شرائح روست بيف", grams: 100 },
+    ],
+  },
+  {
+    nameEn: "Halwani Smoked Chicken Breast Slices",
+    nameAr: "صدور دجاج مدخنة حلواني إخوان شرائح",
+    category: "cold_cut",
+    subCategory: "cold_cut",
+    caloriesPer100g: "110",
+    proteinPer100g: "21.0",
+    carbsPer100g: "1.8",
+    fatsPer100g: "1.8",
+    householdPortions: [
+      { unitEn: "2 Slices", unitAr: "شريحتين صدور دجاج مدخن", grams: 50 },
+      { unitEn: "4 Slices", unitAr: "٤ شرائح صدور دجاج مدخن", grams: 100 },
+    ],
+  },
+
+  // ==================== HEALTHY CANNED FOODS ====================
+  {
+    nameEn: "Sunshine Canned Tuna in Water",
+    nameAr: "تونة صن شاين قطع لايت بالماء والملح",
+    category: "canned",
+    subCategory: "fasting_seafood",
+    caloriesPer100g: "116",
+    proteinPer100g: "26.0",
+    carbsPer100g: "0.0",
+    fatsPer100g: "1.0",
+    householdPortions: [
+      { unitEn: "1 Drained Can", unitAr: "علبة مصفاة واحدة", grams: 140 },
+      { unitEn: "1/2 Can", unitAr: "نصف علبة", grams: 70 },
+    ],
+  },
+  {
+    nameEn: "Canned Red Kidney Beans (Drained)",
+    nameAr: "فاصوليا حمراء معلبة مغسولة ومصفاة",
+    category: "canned",
+    subCategory: "fasting",
+    caloriesPer100g: "127",
+    proteinPer100g: "8.7",
+    carbsPer100g: "22.8",
+    fatsPer100g: "0.5",
+    fiberPer100g: "6.4",
+    householdPortions: [
+      { unitEn: "1/2 Cup (4 Tbsp)", unitAr: "نصف كوب (٤ ملاعق كبيرة)", grams: 130 },
+      { unitEn: "1 Drained Can", unitAr: "علبة كاملة مصفاة", grams: 240 },
+    ],
+  },
+  {
+    nameEn: "Canned Chickpeas / Hommos (Drained)",
+    nameAr: "حمص حب معلب مغسول ومصفى",
+    category: "canned",
+    subCategory: "fasting",
+    caloriesPer100g: "139",
+    proteinPer100g: "7.0",
+    carbsPer100g: "23.0",
+    fatsPer100g: "2.1",
+    fiberPer100g: "6.0",
+    householdPortions: [
+      { unitEn: "1/2 Cup", unitAr: "نصف كوب", grams: 120 },
+      { unitEn: "1 Drained Can", unitAr: "علبة كاملة مصفاة", grams: 240 },
+    ],
+  },
+  {
+    nameEn: "Canned Sweet Corn (Drained)",
+    nameAr: "ذرة حلوة حب معلبة مصفاة",
+    category: "canned",
+    subCategory: "fasting",
+    caloriesPer100g: "86",
+    proteinPer100g: "3.2",
+    carbsPer100g: "19.0",
+    fatsPer100g: "1.2",
+    fiberPer100g: "2.4",
+    householdPortions: [
+      { unitEn: "3 Tablespoons", unitAr: "٣ ملاعق طعام كبيرة", grams: 75 },
+      { unitEn: "1/2 Cup", unitAr: "نصف كوب", grams: 100 },
+    ],
+  },
+  {
+    nameEn: "Canned Sliced Mushrooms (Drained)",
+    nameAr: "مشروم حب مقطع معلب مصفى",
+    category: "canned",
+    subCategory: "fasting",
+    caloriesPer100g: "22",
+    proteinPer100g: "2.2",
+    carbsPer100g: "3.3",
+    fatsPer100g: "0.3",
+    fiberPer100g: "1.8",
+    householdPortions: [
+      { unitEn: "1/2 Cup", unitAr: "نصف كوب", grams: 80 },
+      { unitEn: "1 Drained Can", unitAr: "علبة كاملة مصفاة", grams: 198 },
+    ],
+  },
+
+  // ==================== FRESH FRUITS ====================
+  {
+    nameEn: "Egyptian Banana",
+    nameAr: "موز بلدي طازج",
+    category: "fruit",
+    subCategory: "fasting",
+    caloriesPer100g: "89",
+    proteinPer100g: "1.1",
+    carbsPer100g: "22.8",
+    fatsPer100g: "0.3",
+    fiberPer100g: "2.6",
+    householdPortions: [
+      { unitEn: "1 Small Banana", unitAr: "ثمرة موزة صغيرة", grams: 90 },
+      { unitEn: "1 Medium Banana", unitAr: "ثمرة موزة متوسطة", grams: 120 },
+    ],
+  },
+  {
+    nameEn: "Fresh Apple",
+    nameAr: "تفاح طازج (أحمر / أصفر / أخضر)",
+    category: "fruit",
+    subCategory: "fasting",
+    caloriesPer100g: "52",
+    proteinPer100g: "0.3",
+    carbsPer100g: "13.8",
+    fatsPer100g: "0.2",
+    fiberPer100g: "2.4",
+    householdPortions: [
+      { unitEn: "1 Medium Apple", unitAr: "تفاحة متوسطة واحدة", grams: 160 },
+      { unitEn: "1 Large Apple", unitAr: "تفاحة كبيرة", grams: 200 },
+    ],
+  },
+  {
+    nameEn: "Egyptian Orange (Baladi)",
+    nameAr: "برتقال بلدي / أبو صرة طازج",
+    category: "fruit",
+    subCategory: "fasting",
+    caloriesPer100g: "47",
+    proteinPer100g: "0.9",
+    carbsPer100g: "11.8",
+    fatsPer100g: "0.1",
+    fiberPer100g: "2.4",
+    householdPortions: [
+      { unitEn: "1 Medium Orange", unitAr: "برتقالة متوسطة", grams: 150 },
+    ],
+  },
+  {
+    nameEn: "Fresh Strawberries",
+    nameAr: "فراولة طازجة بلدي",
+    category: "fruit",
+    subCategory: "fasting",
+    caloriesPer100g: "32",
+    proteinPer100g: "0.7",
+    carbsPer100g: "7.7",
+    fatsPer100g: "0.3",
+    fiberPer100g: "2.0",
+    householdPortions: [
+      { unitEn: "1 Cup Whole Berries", unitAr: "كوب فراولة كاملة", grams: 150 },
+      { unitEn: "1/2 Kilo", unitAr: "نصف كيلو فراولة", grams: 500 },
+    ],
+  },
+  {
+    nameEn: "Egyptian Cantaloupe / Sweet Melon",
+    nameAr: "كانتالوب / شمام مصري طازج",
+    category: "fruit",
+    subCategory: "fasting",
+    caloriesPer100g: "34",
+    proteinPer100g: "0.8",
+    carbsPer100g: "8.2",
+    fatsPer100g: "0.2",
+    fiberPer100g: "0.9",
+    householdPortions: [
+      { unitEn: "1 Large Wedge", unitAr: "شريحة كانتالوب كبيرة", grams: 150 },
+      { unitEn: "1 Diced Cup", unitAr: "كوب كانتالوب مقطع مكعبات", grams: 160 },
+    ],
+  },
+  {
+    nameEn: "Egyptian Summer Watermelon",
+    nameAr: "بطيخ أحمر صيفي بلدي",
+    category: "fruit",
+    subCategory: "fasting",
+    caloriesPer100g: "30",
+    proteinPer100g: "0.6",
+    carbsPer100g: "7.6",
+    fatsPer100g: "0.2",
+    fiberPer100g: "0.4",
+    householdPortions: [
+      { unitEn: "1 Triangular Wedge", unitAr: "شريحة بطيخ مثلثة", grams: 250 },
+      { unitEn: "1 Diced Cup", unitAr: "كوب بطيخ مقطع", grams: 150 },
+    ],
+  },
+  {
+    nameEn: "Egyptian Fresh Guava",
+    nameAr: "جوافة بلدي طازجة",
+    category: "fruit",
+    subCategory: "fasting",
+    caloriesPer100g: "68",
+    proteinPer100g: "2.6",
+    carbsPer100g: "14.3",
+    fatsPer100g: "1.0",
+    fiberPer100g: "5.4",
+    householdPortions: [
+      { unitEn: "1 Medium Guava", unitAr: "ثمرة جوافة متوسطة", grams: 100 },
+      { unitEn: "2 Guavas", unitAr: "ثمرتين جوافة", grams: 200 },
+    ],
+  },
+  {
+    nameEn: "Egyptian Fresh Dates (Balah Omahāt/Samani)",
+    nameAr: "بلح رطب أمهات / سماني طازج",
+    category: "fruit",
+    subCategory: "fasting",
+    caloriesPer100g: "142",
+    proteinPer100g: "1.5",
+    carbsPer100g: "37.0",
+    fatsPer100g: "0.3",
+    fiberPer100g: "3.5",
+    householdPortions: [
+      { unitEn: "3 Fresh Dates", unitAr: "٣ تمرات / بلحات طازجة", grams: 60 },
+      { unitEn: "5 Fresh Dates", unitAr: "٥ تمرات", grams: 100 },
+    ],
+  },
+
+  // ==================== COPTIC CHRISTIAN FASTING SPECIALTIES ====================
+  {
+    nameEn: "Egyptian Besarah (Fava Beans & Herbs)",
+    nameAr: "بصارة مصرية بالفول المدشوش والملوخية والنعناع (صيامي)",
+    category: "protein",
+    subCategory: "fasting",
+    caloriesPer100g: "105",
+    proteinPer100g: "6.8",
+    carbsPer100g: "16.2",
+    fatsPer100g: "1.2",
+    fiberPer100g: "4.8",
+    householdPortions: [
+      { unitEn: "1 Medium Bowl", unitAr: "طبق بصارة متوسط", grams: 220 },
+      { unitEn: "4 Tablespoons", unitAr: "٤ ملاعق طعام كبيرة", grams: 120 },
+    ],
+  },
+  {
+    nameEn: "Egyptian Termes / Lupini Beans (Boiled)",
+    nameAr: "ترمس بلدي مسلوق بالليمون والكمون (سناك بروتين صيامي)",
+    category: "protein",
+    subCategory: "fasting",
+    caloriesPer100g: "119",
+    proteinPer100g: "15.6",
+    carbsPer100g: "9.9",
+    fatsPer100g: "2.9",
+    fiberPer100g: "2.8",
+    householdPortions: [
+      { unitEn: "1 Small Cup", unitAr: "كوب ترمس مسلوق صغير", grams: 100 },
+      { unitEn: "4 Tablespoons", unitAr: "٤ ملاعق كبيرة ترمس", grams: 60 },
+    ],
+  },
+  {
+    nameEn: "Plain Halawa Tahinia",
+    nameAr: "حلاوة طحينية سادة بالسمسم (صيامي)",
+    category: "snack",
+    subCategory: "fasting",
+    caloriesPer100g: "516",
+    proteinPer100g: "12.5",
+    carbsPer100g: "51.0",
+    fatsPer100g: "29.0",
+    householdPortions: [
+      { unitEn: "1 Tablespoon", unitAr: "ملعقة طعام كبيرة", grams: 25 },
+      { unitEn: "2 Tablespoons", unitAr: "ملعقتين طعام", grams: 50 },
+    ],
+  },
 ];
+
