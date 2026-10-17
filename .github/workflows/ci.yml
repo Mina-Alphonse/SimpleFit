@@ -50,16 +50,26 @@ jobs:
 
       - name: Turbo Unit & Integration Tests
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres.xtzzdyqykdvptmuvykdw:FLm6-WVzwGJ$j*f@aws-1-eu-central-1.pooler.supabase.com:6543/postgres' }}
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'https://upward-sunfish-90650.upstash.io' }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAWIaAAIgcDE3MDAyNjU4OGY0ZGI0OTFlOTNmZGUzOGYyYWM5YzZkNg' }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'development_secret_key_32_bytes_long_simplefit_2026' }}
-        run: pnpm turbo run test
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then export DATABASE_URL="postgresql://postgres.xtzzdyqykdvptmuvykdw:FLm6-WVzwGJ\$j*f@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"; fi
+          if [ -z "$UPSTASH_REDIS_REST_URL" ]; then export UPSTASH_REDIS_REST_URL="https://upward-sunfish-90650.upstash.io"; fi
+          if [ -z "$UPSTASH_REDIS_REST_TOKEN" ]; then export UPSTASH_REDIS_REST_TOKEN="gQAAAAAAAWIaAAIgcDE3MDAyNjU4OGY0ZGI0OTFlOTNmZGUzOGYyYWM5YzZkNg"; fi
+          if [ -z "$NEXTAUTH_SECRET" ]; then export NEXTAUTH_SECRET="development_secret_key_32_bytes_long_simplefit_2026"; fi
+          pnpm turbo run test
 
       - name: Turbo Production Build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres.xtzzdyqykdvptmuvykdw:FLm6-WVzwGJ$j*f@aws-1-eu-central-1.pooler.supabase.com:6543/postgres' }}
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'https://upward-sunfish-90650.upstash.io' }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAWIaAAIgcDE3MDAyNjU4OGY0ZGI0OTFlOTNmZGUzOGYyYWM5YzZkNg' }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'development_secret_key_32_bytes_long_simplefit_2026' }}
-        run: pnpm turbo run build
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then export DATABASE_URL="postgresql://postgres.xtzzdyqykdvptmuvykdw:FLm6-WVzwGJ\$j*f@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"; fi
+          if [ -z "$UPSTASH_REDIS_REST_URL" ]; then export UPSTASH_REDIS_REST_URL="https://upward-sunfish-90650.upstash.io"; fi
+          if [ -z "$UPSTASH_REDIS_REST_TOKEN" ]; then export UPSTASH_REDIS_REST_TOKEN="gQAAAAAAAWIaAAIgcDE3MDAyNjU4OGY0ZGI0OTFlOTNmZGUzOGYyYWM5YzZkNg"; fi
+          if [ -z "$NEXTAUTH_SECRET" ]; then export NEXTAUTH_SECRET="development_secret_key_32_bytes_long_simplefit_2026"; fi
+          pnpm turbo run build

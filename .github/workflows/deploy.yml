@@ -1,15 +1,21 @@
 name: Production Deployment
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target Environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - preview
 
 jobs:
   deploy:
-    name: Deploy to Production (Vercel / Cloud Run)
+    name: Deploy to Production (Vercel)
     runs-on: ubuntu-latest
-    if: ${{ secrets.VERCEL_TOKEN != '' }}
 
     steps:
       - name: Checkout Repository
@@ -28,11 +34,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Deploy to Vercel (Production)
+      - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: "--prod"
+          vercel-args: ${{ github.event.inputs.environment == 'production' && '--prod' || '' }}
           working-directory: ./apps/web

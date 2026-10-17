@@ -6,15 +6,18 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-const url = process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+const defaultRedisUrl = "https://upward-sunfish-90650.upstash.io";
+const defaultRedisToken = "gQAAAAAAAWIaAAIgcDE3MDAyNjU4OGY0ZGI0OTFlOTNmZGUzOGYyYWM5YzZkNg";
+
+const url = process.env.UPSTASH_REDIS_REST_URL || defaultRedisUrl;
+const token = process.env.UPSTASH_REDIS_REST_TOKEN || defaultRedisToken;
 
 /**
  * Live Upstash Redis Client configured for edge & serverless runtime
  */
 export const redis = new Redis({
-  url: url || "https://placeholder-url.upstash.io",
-  token: token || "placeholder-token",
+  url,
+  token,
 });
 
 /**
