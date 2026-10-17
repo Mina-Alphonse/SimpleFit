@@ -1,4 +1,4 @@
-# Multi-stage production Dockerfile for MasrFit AI Monorepo
+# Multi-stage production Dockerfile for SimpleFit Monorepo
 FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@12.14.0 --activate
 WORKDIR /app
@@ -7,7 +7,7 @@ WORKDIR /app
 FROM base AS pruner
 RUN npm install -g turbo
 COPY . .
-RUN turbo prune @masrfit/web --docker
+RUN turbo prune @simplefit/web --docker
 
 # Stage 2: Install dependencies
 FROM base AS installer
@@ -22,7 +22,7 @@ RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm turbo run build --filter=@masrfit/web
+RUN pnpm turbo run build --filter=@simplefit/web
 
 # Stage 4: Production runner
 FROM node:22-alpine AS runner

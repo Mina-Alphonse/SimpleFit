@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, redis, sql } from "@masrfit/database";
+import { db, redis, sql } from "@simplefit/database";
 
 export const dynamic = "force-dynamic";
 

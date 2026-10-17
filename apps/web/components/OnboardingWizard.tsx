@@ -14,7 +14,7 @@ import {
   CaloricTargetTier,
   PlanCadence,
   BudgetTier,
-} from "@masrfit/shared";
+} from "@simplefit/shared";
 import {
   User,
   Activity,

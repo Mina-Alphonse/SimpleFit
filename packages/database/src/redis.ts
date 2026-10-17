@@ -27,7 +27,7 @@ export const rateLimiters = {
     redis,
     limiter: Ratelimit.slidingWindow(30, "10 s"),
     analytics: true,
-    prefix: "@masrfit/rl/api",
+    prefix: "@simplefit/rl/api",
   }),
 
   // Auth endpoints (Sign-in/Sign-up/Magic-links): 5 requests per 60 seconds
@@ -35,7 +35,7 @@ export const rateLimiters = {
     redis,
     limiter: Ratelimit.slidingWindow(5, "60 s"),
     analytics: true,
-    prefix: "@masrfit/rl/auth",
+    prefix: "@simplefit/rl/auth",
   }),
 
   // Food Search Autocomplete: 60 requests per 60 seconds
@@ -43,7 +43,7 @@ export const rateLimiters = {
     redis,
     limiter: Ratelimit.slidingWindow(60, "60 s"),
     analytics: true,
-    prefix: "@masrfit/rl/food-search",
+    prefix: "@simplefit/rl/food-search",
   }),
 };
 

@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET || "development_secret_key_32_bytes_long_masrfit_2026"
+  process.env.NEXTAUTH_SECRET || "development_secret_key_32_bytes_long_simplefit_2026"
 );
 
 export interface TokenPayload {

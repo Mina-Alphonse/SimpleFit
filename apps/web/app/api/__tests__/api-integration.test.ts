@@ -8,7 +8,7 @@ import { POST as diningOutHandler } from "../adherence/dining-out/route";
 import { POST as reconciliationHandler } from "../adherence/reconciliation/route";
 import { POST as workoutLogHandler } from "../workouts/log/route";
 import { signAccessToken, verifyToken } from "../../../lib/auth";
-import { db, foods, exercises, sql } from "@masrfit/database";
+import { db, foods, exercises, sql } from "@simplefit/database";
 import { NextRequest } from "next/server";
 
 describe("Phase 4: Backend APIs, Auth & Security Layer Integration Tests", () => {
@@ -217,7 +217,7 @@ describe("Phase 4: Backend APIs, Auth & Security Layer Integration Tests", () =>
     it("signs and verifies an OWASP-compliant JWT access token", async () => {
       const payload = {
         userId: "user-123-uuid",
-        email: "cairo.athlete@masrfit.ai",
+        email: "cairo.athlete@simplefit.ai",
         role: "user",
       };
 
@@ -228,7 +228,7 @@ describe("Phase 4: Backend APIs, Auth & Security Layer Integration Tests", () =>
       const verified = await verifyToken(token);
       expect(verified).not.toBeNull();
       expect(verified?.userId).toBe("user-123-uuid");
-      expect(verified?.email).toBe("cairo.athlete@masrfit.ai");
+      expect(verified?.email).toBe("cairo.athlete@simplefit.ai");
     });
   });
 });

@@ -2,8 +2,8 @@ export type Locale = "en" | "ar";
 
 export const dictionaries = {
   en: {
-    appName: "MasrFit AI",
-    tagline: "Egyptian Fitness & Quantitative Nutrition Engineered for Real Life",
+    appName: "SimpleFit",
+    tagline: "Quantitative Nutrition & Smart Workouts Engineered for Real Life",
     direction: "ltr",
     auth: {
       signIn: "Sign In",
@@ -45,8 +45,8 @@ export const dictionaries = {
     },
   },
   ar: {
-    appName: "مصر فيت AI",
-    tagline: "التغذية والتمارين الرياضية المحسوبة بدقة بطابع وأكلات مصرية أصيلة",
+    appName: "سيمبل فيت (SimpleFit)",
+    tagline: "التغذية الذكية المحسوبة بدقة والتمارين الرياضية المصممة لأسلوب حياتك",
     direction: "rtl",
     auth: {
       signIn: "تسجيل الدخول",

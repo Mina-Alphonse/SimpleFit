@@ -28,13 +28,13 @@ export function Header({ activeTab, setActiveTab }: HeaderProps) {
         {/* Brand */}
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-black text-lg shadow-sm">
-            MF
+            SF
           </div>
           <div>
             <h1 className="font-extrabold text-base md:text-lg tracking-tight flex items-center gap-2">
-              <span>{locale === "ar" ? t.appName : "MasrFit AI"}</span>
+              <span>{locale === "ar" ? t.appName : "SimpleFit"}</span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium hidden sm:inline-block">
-                مصر فيت
+                سيمبل فيت
               </span>
             </h1>
           </div>

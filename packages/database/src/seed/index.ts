@@ -6,7 +6,7 @@ import { EXERCISES_SEED } from "./data/exercises";
 import { sql } from "drizzle-orm";
 
 async function runSeed() {
-  console.log("🚀 Starting MasrFit AI Database Seeding...");
+  console.log("🚀 Starting SimpleFit Database Seeding...");
 
   try {
     // 1. Enable pg_trgm extension for fuzzy bilingual food search

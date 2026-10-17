@@ -1,5 +1,5 @@
 {
-  "name": "@masrfit/shared",
+  "name": "@simplefit/shared",
   "version": "0.0.1",
   "private": true,
   "main": "./src/index.ts",
@@ -21,8 +21,8 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@masrfit/typescript-config": "workspace:*",
-    "@masrfit/eslint-config": "workspace:*",
+    "@simplefit/typescript-config": "workspace:*",
+    "@simplefit/eslint-config": "workspace:*",
     "typescript": "^5.7.3",
     "vitest": "^3.0.7"
   }

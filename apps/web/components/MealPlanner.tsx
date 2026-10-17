@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "./LanguageContext";
-import { calculateIngredientSwap, FoodNutritionPer100g } from "@masrfit/shared";
+import { calculateIngredientSwap, FoodNutritionPer100g } from "@simplefit/shared";
 import {
   Utensils,
   ArrowRightLeft,

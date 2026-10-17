@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MasrFit AI | مصر فيت - Egyptian Fitness & Nutrition Architecture",
-  description: "Quantitative nutrition engine and smart workout tracking engineered for Egyptian lifestyle.",
+  title: "SimpleFit | سيمبل فيت - Fitness & Nutrition Architecture",
+  description: "Quantitative nutrition engine and smart workout tracking engineered for real life.",
 };
 
 export default function RootLayout({

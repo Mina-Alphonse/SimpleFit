@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "./LanguageContext";
-import { evaluateDoubleProgression, ExercisePrescription, LoggedSet, EffortRating } from "@masrfit/shared";
+import { evaluateDoubleProgression, ExercisePrescription, LoggedSet, EffortRating } from "@simplefit/shared";
 import {
   Dumbbell,
   Clock,

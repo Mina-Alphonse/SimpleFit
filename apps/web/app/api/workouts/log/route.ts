@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { evaluateDoubleProgression, ExercisePrescription, LoggedSet } from "@masrfit/shared";
+import { evaluateDoubleProgression, ExercisePrescription, LoggedSet } from "@simplefit/shared";
 import { z } from "zod";
 
 const LogWorkoutRequestSchema = z.object({

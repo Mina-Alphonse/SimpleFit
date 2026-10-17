@@ -178,10 +178,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@masrfit/database':
+      '@simplefit/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@masrfit/shared':
+      '@simplefit/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       class-variance-authority:
@@ -212,10 +212,10 @@ importers:
         specifier: ^3.24.2
         version: 3.25.76
     devDependencies:
-      '@masrfit/eslint-config':
+      '@simplefit/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@masrfit/typescript-config':
+      '@simplefit/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@types/node':
@@ -261,10 +261,10 @@ importers:
         specifier: ^3.4.5
         version: 3.4.9
     devDependencies:
-      '@masrfit/eslint-config':
+      '@simplefit/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@masrfit/typescript-config':
+      '@simplefit/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/node':
@@ -291,10 +291,10 @@ importers:
         specifier: ^3.24.2
         version: 3.25.76
     devDependencies:
-      '@masrfit/eslint-config':
+      '@simplefit/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@masrfit/typescript-config':
+      '@simplefit/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       typescript:

@@ -1,5 +1,5 @@
 {
-  "name": "@masrfit/database",
+  "name": "@simplefit/database",
   "version": "0.0.1",
   "private": true,
   "main": "./src/index.ts",
@@ -27,8 +27,8 @@
     "postgres": "^3.4.5"
   },
   "devDependencies": {
-    "@masrfit/typescript-config": "workspace:*",
-    "@masrfit/eslint-config": "workspace:*",
+    "@simplefit/typescript-config": "workspace:*",
+    "@simplefit/eslint-config": "workspace:*",
     "@types/node": "^22.13.10",
     "drizzle-kit": "^0.30.2",
     "tsx": "^4.19.3",

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, foods, sql } from "@masrfit/database";
-import { calculateIngredientSwap, FoodNutritionPer100g } from "@masrfit/shared";
+import { db, foods, sql } from "@simplefit/database";
+import { calculateIngredientSwap, FoodNutritionPer100g } from "@simplefit/shared";
 import { z } from "zod";
 
 const IngredientSwapRequestSchema = z.object({

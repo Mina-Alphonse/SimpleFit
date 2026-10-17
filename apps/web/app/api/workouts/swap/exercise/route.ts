@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, exercises, sql } from "@masrfit/database";
-import { calculateExerciseSwap, ExerciseDefinition } from "@masrfit/shared";
+import { db, exercises, sql } from "@simplefit/database";
+import { calculateExerciseSwap, ExerciseDefinition } from "@simplefit/shared";
 import { z } from "zod";
 
 const ExerciseSwapRequestSchema = z.object({

@@ -1,5 +1,5 @@
 {
-  "name": "masrfit-monorepo",
+  "name": "simplefit-monorepo",
   "private": true,
   "packageManager": "pnpm@12.14.0",
   "scripts": {

@@ -8,7 +8,7 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/masrfit";
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/simplefit";
 
 // Connection pool configuration for high concurrency & transaction-mode pooler compatibility
 export const pgClient = postgres(connectionString, {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { dictionaries, Locale, Dictionary } from "@masrfit/shared";
+import { dictionaries, Locale, Dictionary } from "@simplefit/shared";
 
 interface LanguageContextType {
   locale: Locale;

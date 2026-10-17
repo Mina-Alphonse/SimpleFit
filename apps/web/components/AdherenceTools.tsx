@@ -6,7 +6,7 @@ import {
   calculateDiningOutBuffer,
   calculateSurplusReconciliation,
   DiningOutEventType,
-} from "@masrfit/shared";
+} from "@simplefit/shared";
 import {
   Compass,
   Utensils,

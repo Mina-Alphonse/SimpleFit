@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, foods, redis, rateLimiters, sql } from "@masrfit/database";
+import { db, foods, redis, rateLimiters, sql } from "@simplefit/database";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
   const normalizedQuery = q.trim().toLowerCase();
 
   // 3. Upstash Redis Edge Caching: Check cache first
-  const cacheKey = `masrfit:food:search:${normalizedQuery}:${category || "all"}:${limit}`;
+  const cacheKey = `simplefit:food:search:${normalizedQuery}:${category || "all"}:${limit}`;
   try {
     const cachedResults = await redis.get(cacheKey);
     if (cachedResults) {

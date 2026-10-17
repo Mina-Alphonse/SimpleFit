@@ -5,7 +5,7 @@ import {
   calculateTDEE,
   calculateTargetCalories,
   calculateMacroSplit,
-} from "@masrfit/shared";
+} from "@simplefit/shared";
 
 export async function POST(req: NextRequest) {
   try {

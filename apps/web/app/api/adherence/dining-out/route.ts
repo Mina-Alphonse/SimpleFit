@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { calculateDiningOutBuffer, DiningOutEventType, BiologicalSex } from "@masrfit/shared";
+import { calculateDiningOutBuffer, DiningOutEventType, BiologicalSex } from "@simplefit/shared";
 import { z } from "zod";
 
 const DiningOutRequestSchema = z.object({
