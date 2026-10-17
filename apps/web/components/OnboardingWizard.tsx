@@ -52,6 +52,8 @@ export function OnboardingWizard() {
   });
 
   const [completed, setCompleted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Compute live diagnostic preview
   const bmr = calculateBMR({
@@ -79,6 +81,43 @@ export function OnboardingWizard() {
     goalWeightKg: formData.goalWeightKg,
     proteinRatioGPerKg: 2.0,
   });
+
+  const handleGenerateAndSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/onboarding/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: {
+            age: formData.age,
+            biologicalSex: formData.biologicalSex,
+            heightCm: formData.heightCm,
+            weightKg: formData.weightKg,
+            goalWeightKg: formData.goalWeightKg,
+            activityLevel: formData.activityLevel,
+            fitnessExperience: formData.fitnessExperience,
+            trainingEnvironment: formData.trainingEnvironment,
+            daysPerWeek: formData.daysPerWeek,
+            sessionDurationMins: formData.sessionDurationMins,
+            caloricTier: formData.caloricTier,
+            planCadence: formData.planCadence,
+            budgetTier: formData.budgetTier,
+            injuryFlags: formData.injuryFlags,
+            allergies: [],
+          },
+        }),
+      });
+      if (res.ok) {
+        setSavedSuccess(true);
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+    } finally {
+      setIsSaving(false);
+      setCompleted(true);
+    }
+  };
 
   const toggleInjury = (flag: string) => {
     setFormData((prev) => ({
@@ -519,11 +558,20 @@ export function OnboardingWizard() {
             ) : (
               <button
                 type="button"
-                onClick={() => setCompleted(true)}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-95 shadow-md shadow-primary/20"
+                disabled={isSaving}
+                onClick={handleGenerateAndSave}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-95 shadow-md shadow-primary/20 disabled:opacity-60"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>{isAr ? "اعتماد الخطة المصرية الآن" : "Generate Egyptian Plan"}</span>
+                <span>
+                  {isSaving
+                    ? isAr
+                      ? "جاري الحفظ والاعتماد..."
+                      : "Saving Plan..."
+                    : isAr
+                    ? "اعتماد وحفظ الخطة الآن"
+                    : "Generate & Save Plan"}
+                </span>
               </button>
             )}
           </div>
@@ -598,7 +646,11 @@ export function OnboardingWizard() {
             <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 shrink-0" />
               <span>
-                {isAr
+                {savedSuccess
+                  ? isAr
+                    ? "تم حفظ واعتماد خطتك بنجاح في قاعدة البيانات وتفعيلها بالجدول!"
+                    : "Plan successfully saved to database & activated in your meal planner!"
+                  : isAr
                   ? "تم اعتماد خطتك وتفعيلها بنجاح في جدول الوجبات والتمارين!"
                   : "Plan successfully initialized! Access meals and workout logger in the tabs above."}
               </span>

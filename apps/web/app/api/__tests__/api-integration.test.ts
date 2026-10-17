@@ -7,7 +7,11 @@ import { POST as onboardingCalculateHandler } from "../onboarding/calculate/rout
 import { POST as diningOutHandler } from "../adherence/dining-out/route";
 import { POST as reconciliationHandler } from "../adherence/reconciliation/route";
 import { POST as workoutLogHandler } from "../workouts/log/route";
-import { signAccessToken, verifyToken } from "../../../lib/auth";
+import { POST as registerHandler } from "../auth/register/route";
+import { POST as loginHandler } from "../auth/login/route";
+import { POST as demoHandler } from "../auth/demo/route";
+import { POST as onboardingSaveHandler } from "../onboarding/save/route";
+import { signAccessToken, verifyToken, hashPassword, verifyPassword } from "../../../lib/auth";
 import { db, foods, exercises, sql } from "@simplefit/database";
 import { NextRequest } from "next/server";
 
@@ -231,4 +235,118 @@ describe("Phase 4: Backend APIs, Auth & Security Layer Integration Tests", () =>
       expect(verified?.email).toBe("cairo.athlete@simplefit.ai");
     });
   });
+
+  describe("9. Cryptographic Password Hashing & Verification", () => {
+    it("hashes password with salt and verifies successfully", () => {
+      const password = "SuperSecretPassword123!";
+      const hash = hashPassword(password);
+
+      expect(hash).toContain(":");
+      expect(verifyPassword(password, hash)).toBe(true);
+      expect(verifyPassword("WrongPassword!", hash)).toBe(false);
+    });
+  });
+
+  describe("10. User Registration & Authentication APIs (/api/auth)", () => {
+    const testEmail = `test.athlete.${Date.now()}@simplefit.ai`;
+    const testPassword = "StrongPassword2026!";
+
+    it("registers a new user and issues JWT tokens and cookies", async () => {
+      const req = new NextRequest("http://localhost:3000/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+          name: "Tarek Sherif",
+        }),
+      });
+
+      const res = await registerHandler(req);
+      expect(res.status).toBe(200);
+
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.user.email).toBe(testEmail);
+      expect(json.tokens.accessToken).toBeDefined();
+    });
+
+    it("authenticates the registered user via /api/auth/login", async () => {
+      const req = new NextRequest("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+        }),
+      });
+
+      const res = await loginHandler(req);
+      expect(res.status).toBe(200);
+
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.user.email).toBe(testEmail);
+      expect(json.tokens.accessToken).toBeDefined();
+    });
+
+    it("rejects login with incorrect password", async () => {
+      const req = new NextRequest("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: testEmail,
+          password: "IncorrectPassword!",
+        }),
+      });
+
+      const res = await loginHandler(req);
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe("11. Instant 1-Click Demo Cairo Athlete (/api/auth/demo)", () => {
+    it("initiates demo session and returns Ahmed Cairo athlete profile", async () => {
+      const res = await demoHandler();
+      expect(res.status).toBe(200);
+
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.user.email).toBe("cairo.athlete@simplefit.ai");
+      expect(json.tokens.accessToken).toBeDefined();
+    });
+  });
+
+  describe("12. Persistent Onboarding Diagnostic & Meal Plan Saving (/api/onboarding/save)", () => {
+    it("persists calculated profile and meal plan to database", async () => {
+      const req = new NextRequest("http://localhost:3000/api/onboarding/save", {
+        method: "POST",
+        body: JSON.stringify({
+          profile: {
+            age: 26,
+            biologicalSex: "male",
+            heightCm: 178,
+            weightKg: 84,
+            activityLevel: "moderate",
+            fitnessExperience: "beginner",
+            trainingEnvironment: "gym",
+            daysPerWeek: 3,
+            sessionDurationMins: "45",
+            caloricTier: "moderate_deficit",
+            planCadence: "weekly",
+            budgetTier: "standard",
+            injuryFlags: [],
+            allergies: [],
+          },
+        }),
+      });
+
+      const res = await onboardingSaveHandler(req);
+      expect(res.status).toBe(200);
+
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.profile.targetCalories).toBeGreaterThan(1200);
+      expect(json.profile.targetProteinG).toBeGreaterThan(100);
+      expect(json.mealPlan.isActive).toBe("true");
+    });
+  });
 });
+

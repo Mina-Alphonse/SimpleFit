@@ -2,17 +2,32 @@
 
 import React from "react";
 import { useLanguage } from "./LanguageContext";
-import { Globe, Dumbbell, Utensils, Compass, BarChart3, ShieldCheck } from "lucide-react";
+import { useAuth } from "./AuthContext";
+import {
+  Globe,
+  Dumbbell,
+  Utensils,
+  Compass,
+  BarChart3,
+  ShieldCheck,
+  ShoppingBag,
+  User as UserIcon,
+  LogOut,
+  Sparkles,
+} from "lucide-react";
 
 export type NavTab = "wizard" | "planner" | "workout" | "adherence" | "dashboard";
 
 interface HeaderProps {
   activeTab: NavTab;
   setActiveTab: (tab: NavTab) => void;
+  onOpenGroceryList?: () => void;
 }
 
-export function Header({ activeTab, setActiveTab }: HeaderProps) {
+export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderProps) {
   const { locale, toggleLocale, t } = useLanguage();
+  const { user, logout, setIsAuthModalOpen } = useAuth();
+  const isAr = locale === "ar";
 
   const navItems = [
     { id: "planner" as NavTab, labelEn: "Meal Plan & Swaps", labelAr: "الوجبات والتبديل", icon: Utensils },
@@ -62,16 +77,54 @@ export function Header({ activeTab, setActiveTab }: HeaderProps) {
           })}
         </nav>
 
-        {/* Language & Actions */}
+        {/* Language & Auth Actions */}
         <div className="flex items-center gap-2">
+          {/* Grocery list quick trigger */}
+          {onOpenGroceryList && (
+            <button
+              onClick={onOpenGroceryList}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold transition-colors"
+              title={isAr ? "قائمة مشتريات السوبرماركت" : "Grocery Shopping List"}
+            >
+              <ShoppingBag className="w-3.5 h-3.5 text-primary" />
+              <span>{isAr ? "المشتريات" : "Groceries"}</span>
+            </button>
+          )}
+
+          {/* Language Switcher */}
           <button
             onClick={toggleLocale}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold transition-colors"
             title="Switch Language / تبديل اللغة"
           >
             <Globe className="w-3.5 h-3.5 text-primary" />
-            <span>{locale === "ar" ? "English (LTR)" : "العربية (RTL)"}</span>
+            <span className="hidden sm:inline">{locale === "ar" ? "English" : "العربية"}</span>
           </button>
+
+          {/* User Auth Section */}
+          {user ? (
+            <div className="flex items-center gap-2 pl-1 rtl:pl-0 rtl:pr-1">
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-bold max-w-[100px] truncate">{user.name || user.email.split("@")[0]}</span>
+              </div>
+              <button
+                onClick={logout}
+                className="p-1.5 rounded-lg border border-border hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-colors"
+                title={isAr ? "تسجيل خروج" : "Sign Out"}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all shadow-xs"
+            >
+              <UserIcon className="w-3.5 h-3.5" />
+              <span>{isAr ? "دخول / حساب" : "Sign In"}</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

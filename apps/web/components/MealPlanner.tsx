@@ -37,7 +37,11 @@ interface PlannedMeal {
   items: MealItem[];
 }
 
-export function MealPlanner() {
+interface MealPlannerProps {
+  onOpenGroceryList?: () => void;
+}
+
+export function MealPlanner({ onOpenGroceryList }: MealPlannerProps = {}) {
   const { locale } = useLanguage();
   const isAr = locale === "ar";
 
@@ -356,23 +360,35 @@ export function MealPlanner() {
           </p>
         </div>
 
-        {/* Cadence Switcher */}
-        <div className="flex items-center gap-1 bg-muted p-1 rounded-xl">
-          {[
-            { id: "weekly", labelEn: "Weekly (7d)", labelAr: "أسبوعي (٧ أيام)" },
-            { id: "biweekly", labelEn: "Bi-Weekly (14d)", labelAr: "أسبوعين (١٤ يوم)" },
-            { id: "monthly", labelEn: "Monthly (28d)", labelAr: "شهري (٢٨ يوم)" },
-          ].map((cad) => (
+        <div className="flex flex-wrap items-center gap-2">
+          {onOpenGroceryList && (
             <button
-              key={cad.id}
-              onClick={() => setCadence(cad.id as typeof cadence)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                cadence === cad.id ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-              }`}
+              onClick={onOpenGroceryList}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all shadow-xs"
             >
-              {isAr ? cad.labelAr : cad.labelEn}
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>{isAr ? "قائمة المشتريات" : "Grocery List"}</span>
             </button>
-          ))}
+          )}
+
+          {/* Cadence Switcher */}
+          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl">
+            {[
+              { id: "weekly", labelEn: "Weekly (7d)", labelAr: "أسبوعي (٧ أيام)" },
+              { id: "biweekly", labelEn: "Bi-Weekly (14d)", labelAr: "أسبوعين (١٤ يوم)" },
+              { id: "monthly", labelEn: "Monthly (28d)", labelAr: "شهري (٢٨ يوم)" },
+            ].map((cad) => (
+              <button
+                key={cad.id}
+                onClick={() => setCadence(cad.id as typeof cadence)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  cadence === cad.id ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {isAr ? cad.labelAr : cad.labelEn}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
