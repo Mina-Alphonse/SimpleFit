@@ -24,11 +24,10 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 12.14.0
-          run_install: false
+      - name: Enable Corepack & Setup pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@12.14.0 --activate
 
       - name: Get pnpm store directory
         shell: bash
@@ -51,16 +50,16 @@ jobs:
 
       - name: Turbo Unit & Integration Tests
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres.xtzzdyqykdvptmuvykdw:FLm6-WVzwGJ$j*f@aws-1-eu-central-1.pooler.supabase.com:6543/postgres' }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'https://upward-sunfish-90650.upstash.io' }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAWIaAAIgcDE3MDAyNjU4OGY0ZGI0OTFlOTNmZGUzOGYyYWM5YzZkNg' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'development_secret_key_32_bytes_long_simplefit_2026' }}
         run: pnpm turbo run test
 
       - name: Turbo Production Build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres.xtzzdyqykdvptmuvykdw:FLm6-WVzwGJ$j*f@aws-1-eu-central-1.pooler.supabase.com:6543/postgres' }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'https://upward-sunfish-90650.upstash.io' }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAWIaAAIgcDE3MDAyNjU4OGY0ZGI0OTFlOTNmZGUzOGYyYWM5YzZkNg' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'development_secret_key_32_bytes_long_simplefit_2026' }}
         run: pnpm turbo run build
