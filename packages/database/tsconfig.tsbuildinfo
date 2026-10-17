@@ -1,0 +1,1 @@
+{"root":["./src/client.ts","./src/index.ts","./src/schema/exercises.ts","./src/schema/foods.ts","./src/schema/index.ts","./src/schema/logs.ts","./src/schema/plans.ts","./src/schema/users.ts"],"version":"5.9.3"}
