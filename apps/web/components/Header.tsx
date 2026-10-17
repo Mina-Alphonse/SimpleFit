@@ -19,7 +19,9 @@ import {
 } from "lucide-react";
 import { useTheme } from "./ThemeContext";
 
-export type NavTab = "wizard" | "planner" | "workout" | "adherence" | "dashboard";
+import { Logo } from "./Logo";
+
+export type NavTab = "home" | "wizard" | "planner" | "workout" | "adherence" | "dashboard";
 
 interface HeaderProps {
   activeTab: NavTab;
@@ -35,7 +37,7 @@ export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderPro
 
   const navItems = [
     { id: "planner" as NavTab, labelEn: "Meal Plan & Swaps", labelAr: "الوجبات والتبديل", icon: Utensils },
-    { id: "workout" as NavTab, labelEn: "Workout Logger", labelAr: "تسجيل التمرين", icon: Dumbbell },
+    { id: "workout" as NavTab, labelEn: "Workout Plan & Logger", labelAr: "الخطة والتمارين", icon: Dumbbell },
     { id: "adherence" as NavTab, labelEn: "Dining Out & Balance", labelAr: "الخروجات وتدارك الفائض", icon: Compass },
     { id: "dashboard" as NavTab, labelEn: "Progress & Streaks", labelAr: "التقدم والوزن الأسبوعي", icon: BarChart3 },
     { id: "wizard" as NavTab, labelEn: "Diagnostic Wizard", labelAr: "التقييم الذكي", icon: ShieldCheck },
@@ -44,20 +46,14 @@ export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderPro
   return (
     <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-md border-b border-border shadow-xs">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-black text-lg shadow-sm">
-            SF
-          </div>
-          <div>
-            <h1 className="font-extrabold text-base md:text-lg tracking-tight flex items-center gap-2">
-              <span>{locale === "ar" ? t.appName : "SimpleFit"}</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium hidden sm:inline-block">
-                سيمبل فيت
-              </span>
-            </h1>
-          </div>
-        </div>
+        {/* Brand with clickable Logo to Home */}
+        <button
+          onClick={() => setActiveTab("home")}
+          className="flex items-center gap-3 hover:opacity-90 transition-opacity text-left rtl:text-right"
+          title={isAr ? "الصفحة الرئيسية" : "Home Landing Page"}
+        >
+          <Logo size="sm" variant="full" />
+        </button>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/60">

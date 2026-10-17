@@ -3,29 +3,39 @@
 import React, { useState } from "react";
 import { LanguageProvider, useLanguage } from "../components/LanguageContext";
 import { ThemeProvider } from "../components/ThemeContext";
-import { AuthProvider } from "../components/AuthContext";
+import { AuthProvider, useAuth } from "../components/AuthContext";
 import { AuthModal } from "../components/AuthModal";
 import { GroceryListModal } from "../components/GroceryListModal";
 import { Header, NavTab } from "../components/Header";
+import { LandingPage } from "../components/LandingPage";
 import { OnboardingWizard } from "../components/OnboardingWizard";
 import { MealPlanner } from "../components/MealPlanner";
-import { WorkoutLogger } from "../components/WorkoutLogger";
+import { WorkoutPlan } from "../components/WorkoutPlan";
 import { AdherenceTools } from "../components/AdherenceTools";
 import { Dashboard } from "../components/Dashboard";
-import { Utensils, Dumbbell, Compass, BarChart3, ShieldCheck } from "lucide-react";
+import {
+  Utensils,
+  Dumbbell,
+  Compass,
+  BarChart3,
+  Home as HomeIcon,
+  ShieldCheck,
+} from "lucide-react";
 
 function MainApp() {
-  const [activeTab, setActiveTab] = useState<NavTab>("planner");
+  const { user } = useAuth();
+  // Default to landing page for logged-out visitors, or meal planner for logged-in athletes
+  const [activeTab, setActiveTab] = useState<NavTab>(() => (user ? "planner" : "home"));
   const [isGroceryModalOpen, setIsGroceryModalOpen] = useState(false);
   const { locale } = useLanguage();
   const isAr = locale === "ar";
 
   const mobileNavItems = [
+    { id: "home" as NavTab, labelEn: "Home", labelAr: "الرئيسية", icon: HomeIcon },
     { id: "planner" as NavTab, labelEn: "Meals", labelAr: "الوجبات", icon: Utensils },
-    { id: "workout" as NavTab, labelEn: "Workout", labelAr: "التمرين", icon: Dumbbell },
+    { id: "workout" as NavTab, labelEn: "Workout", labelAr: "التمارين", icon: Dumbbell },
     { id: "adherence" as NavTab, labelEn: "Buffer", labelAr: "الخروجات", icon: Compass },
     { id: "dashboard" as NavTab, labelEn: "Progress", labelAr: "التقدم", icon: BarChart3 },
-    { id: "wizard" as NavTab, labelEn: "Wizard", labelAr: "التقييم", icon: ShieldCheck },
   ];
 
   return (
@@ -37,8 +47,11 @@ function MainApp() {
       />
 
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-8">
-        {activeTab === "planner" && <MealPlanner onOpenGroceryList={() => setIsGroceryModalOpen(true)} />}
-        {activeTab === "workout" && <WorkoutLogger />}
+        {activeTab === "home" && <LandingPage onNavigate={setActiveTab} />}
+        {activeTab === "planner" && (
+          <MealPlanner onOpenGroceryList={() => setIsGroceryModalOpen(true)} />
+        )}
+        {activeTab === "workout" && <WorkoutPlan />}
         {activeTab === "adherence" && <AdherenceTools />}
         {activeTab === "dashboard" && <Dashboard />}
         {activeTab === "wizard" && <OnboardingWizard />}
