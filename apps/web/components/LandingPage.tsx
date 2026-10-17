@@ -59,7 +59,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
 
         {/* Hero Vector Logo */}
         <div className="flex justify-center py-2">
-          <Logo size="xl" variant="hero" showTagline={false} />
+          <Logo size="xl" variant="hero" showTagline={false} locale={locale} />
         </div>
 
         {/* Main Headline */}

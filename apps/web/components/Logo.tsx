@@ -1,12 +1,14 @@
 "use client";
 
 import React from "react";
+import { useLanguage } from "./LanguageContext";
 
 interface LogoProps {
   className?: string;
   variant?: "icon" | "full" | "hero";
   size?: "sm" | "md" | "lg" | "xl";
   showTagline?: boolean;
+  locale?: "ar" | "en";
 }
 
 export function Logo({
@@ -14,7 +16,20 @@ export function Logo({
   variant = "full",
   size = "md",
   showTagline = false,
+  locale: propLocale,
 }: LogoProps) {
+  let ctxLocale: "ar" | "en" = "ar";
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const lang = useLanguage();
+    if (lang?.locale) ctxLocale = lang.locale;
+  } catch {
+    ctxLocale = "ar";
+  }
+
+  const activeLocale = propLocale || ctxLocale;
+  const isAr = activeLocale === "ar";
+
   const iconSizes = {
     sm: "w-8 h-8",
     md: "w-10 h-10",
@@ -30,7 +45,7 @@ export function Logo({
   };
 
   return (
-    <div className={`inline-flex items-center gap-3 ${className}`}>
+    <div className={`inline-flex items-center gap-2.5 ${className}`}>
       {/* Innovative Vector Icon */}
       <div className={`relative shrink-0 ${iconSizes[size]} flex items-center justify-center`}>
         <svg
@@ -105,24 +120,24 @@ export function Logo({
         </svg>
       </div>
 
-      {/* Brand Typography Wordmark */}
+      {/* Brand Typography Wordmark: Clean, Single Name Matching Active Language */}
       {variant !== "icon" && (
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span
-              className={`font-black tracking-tight text-foreground ${textSizes[size]}`}
-            >
-              Simple<span className="text-primary">Fit</span>
-            </span>
-
-            <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-              سيمبل فيت
-            </span>
+          <div className="flex items-center">
+            {isAr ? (
+              <span className={`font-black tracking-tight text-foreground ${textSizes[size]}`}>
+                سيمبل <span className="text-primary">فيت</span>
+              </span>
+            ) : (
+              <span className={`font-black tracking-tight text-foreground ${textSizes[size]}`}>
+                Simple<span className="text-primary">Fit</span>
+              </span>
+            )}
           </div>
 
           {showTagline && (
             <span className="text-[11px] text-muted-foreground font-medium mt-0.5 hidden sm:block">
-              التغذية والتمارين الذكية لواقع مصر
+              {isAr ? "التغذية والتمارين الذكية لواقع مصر" : "Smart Nutrition & Workouts for Egypt"}
             </span>
           )}
         </div>

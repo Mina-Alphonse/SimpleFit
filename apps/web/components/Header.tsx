@@ -52,7 +52,7 @@ export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderPro
           className="flex items-center gap-3 hover:opacity-90 transition-opacity text-left rtl:text-right"
           title={isAr ? "الصفحة الرئيسية" : "Home Landing Page"}
         >
-          <Logo size="sm" variant="full" />
+          <Logo size="sm" variant="full" locale={locale} />
         </button>
 
         {/* Desktop Navigation */}
