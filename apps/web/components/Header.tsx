@@ -45,18 +45,18 @@ export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderPro
 
   return (
     <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-md border-b border-border shadow-xs">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 lg:gap-6">
         {/* Brand with clickable Logo to Home */}
         <button
           onClick={() => setActiveTab("home")}
-          className="flex items-center gap-3 hover:opacity-90 transition-opacity text-left rtl:text-right"
+          className="flex items-center gap-3 shrink-0 mr-3 lg:mr-8 rtl:mr-0 rtl:ml-3 rtl:lg:ml-8 hover:opacity-90 transition-opacity text-left rtl:text-right"
           title={isAr ? "الصفحة الرئيسية" : "Home Landing Page"}
         >
           <Logo size="sm" variant="full" locale={locale} />
         </button>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/60">
+        {/* Desktop Navigation with comfortable margins */}
+        <nav className="hidden md:flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/60 shrink-0">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -78,7 +78,7 @@ export function Header({ activeTab, setActiveTab, onOpenGroceryList }: HeaderPro
         </nav>
 
         {/* Language & Auth Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Grocery list quick trigger */}
           {onOpenGroceryList && (
             <button

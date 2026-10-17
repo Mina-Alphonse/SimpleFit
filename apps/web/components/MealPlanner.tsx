@@ -20,8 +20,128 @@ import {
   Scale,
   X,
   ChevronDown,
+  ChevronUp,
   ShieldAlert,
+  Lightbulb,
+  Droplets,
+  ChefHat,
 } from "lucide-react";
+
+export interface DietSauceTip {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  category: "zero_cal" | "low_fat_sauce" | "flavor_hack";
+  caloriesDescAr: string;
+  caloriesDescEn: string;
+  bestWithAr: string;
+  bestWithEn: string;
+  recipeTipAr: string;
+  recipeTipEn: string;
+  tagAr: string;
+  tagEn: string;
+}
+
+export const DIET_SAUCES_AND_FLAVOR_TRICKS: DietSauceTip[] = [
+  {
+    id: "yellow_mustard",
+    nameAr: "المستردة الصفراء (خردل هاينز / فرينشز)",
+    nameEn: "Yellow Mustard (Heinz / French's)",
+    category: "zero_cal",
+    caloriesDescAr: "٥ سعرات للملعقة الكبيرة (صفر دهون وسكر)",
+    caloriesDescEn: "5 kcal per tbsp (0g fat, 0g sugar)",
+    bestWithAr: "صدور الفراخ، البيض المسلوق، ساندوتشات التوست والتونة",
+    bestWithEn: "Chicken breast, boiled eggs, toast sandwiches, tuna",
+    recipeTipAr: "بديل عبقري للمايونيز، تمنح الساندوتش حموضة ونكهة قوية دون إضافة أي دهون.",
+    recipeTipEn: "Perfect zero-fat substitute for mayo, adding tangy punch without calories.",
+    tagAr: "شبه معدوم السعرات",
+    tagEn: "Zero Fat",
+  },
+  {
+    id: "hot_sauce_shatta",
+    nameAr: "الهوت صوص / الشطة الحارة (تباسكو / شطة مصرية)",
+    nameEn: "Hot Sauce / Egyptian Shatta (Tabasco)",
+    category: "zero_cal",
+    caloriesDescAr: "صفر سعرات تقريباً (١–٢ سعرة للرشة)",
+    caloriesDescEn: "Virtually 0 kcal (1–2 kcal per dash)",
+    bestWithAr: "الفول المدمس، التونة، البيض، والصدور المشوية",
+    bestWithEn: "Ful medames, canned tuna, eggs, grilled chicken",
+    recipeTipAr: "الكابسيسين الحار يرفع معدل الحرق ويعطي إحساساً كبيراً بالشبع والنكهة.",
+    recipeTipEn: "Capsaicin boosts thermogenesis and gives rich kick to plain foods.",
+    tagAr: "حارق دهون طبيعي",
+    tagEn: "Metabolic Boost",
+  },
+  {
+    id: "greek_yogurt_garlic",
+    nameAr: "صوص الثومية بالزبادي اليوناني ٠٪ (بديل التومية)",
+    nameEn: "High-Protein Greek Yogurt Garlic Dip",
+    category: "low_fat_sauce",
+    caloriesDescAr: "٣٥ سعرة + ٥ جم بروتين لكل ملعقتين كبيرتين",
+    caloriesDescEn: "35 kcal + 5g Protein per 2 tbsp (0g fat)",
+    bestWithAr: "الشيش طاووق، الشاورما، الفراخ المشوية، والبطاطس المسلوقة",
+    bestWithEn: "Shish tawook, chicken breast, shawarma, baked potato",
+    recipeTipAr: "اخلط ملعقتين زبادي يوناني 0% مع فص ثوم مفروم، عصرة ليمون، رشة ملح وزعتر. طعم التومية السورية بدون نقطة زيت!",
+    recipeTipEn: "Mix 2 tbsp 0% Greek yogurt with minced garlic, lemon juice, salt, and oregano. Authentic garlic dip with 0 fat!",
+    tagAr: "عالي البروتين",
+    tagEn: "High Protein",
+  },
+  {
+    id: "egyptian_lemon_cumin_daa",
+    nameAr: "دقة الليمون والكمون والخل المصرية",
+    nameEn: "Egyptian Lemon-Cumin Garlic Dressing (Da'a)",
+    category: "zero_cal",
+    caloriesDescAr: "أقل من ١٠ سعرات (خالية من الزيوت)",
+    caloriesDescEn: "<10 kcal (oil-free dressing)",
+    bestWithAr: "السلطة الخضراء، الفول، السمك المشوي، والبتنجان المشوي",
+    bestWithEn: "Green salad, ful medames, grilled fish, grilled eggplant",
+    recipeTipAr: "عصير ليمونة كاملة + ملعقة خل تفاح + كمون مطحون + توم بودرة ورشة ملح هيمالايا. سر نكهة المطاعم الشعبية للدايت.",
+    recipeTipEn: "Fresh lemon juice + apple cider vinegar + cumin + garlic powder. The street secret for delicious diet salads and ful.",
+    tagAr: "سر النكهة الشعبية",
+    tagEn: "Egyptian Secret",
+  },
+  {
+    id: "light_tahini_hack",
+    nameAr: "خدعة الطحينة الخفيفة (Light Tahini Hack)",
+    nameEn: "Light Diluted Tahini Trick",
+    category: "flavor_hack",
+    caloriesDescAr: "٣٥ سعرة للكمية الكبيرة (بدل ١٢٠ سعرة)",
+    caloriesDescEn: "~35 kcal for 3 full tbsp (vs 120 kcal raw)",
+    bestWithAr: "المشاوي، الكفتة، الفول، والأسماك",
+    bestWithEn: "Grilled meats, kofta, ful, grilled tilapia",
+    recipeTipAr: "ذوّب ملعقة صغيرة فقط من الطحينة الخام في ملعقتين ماء دافئ مع ليمون وكمون وثوم؛ ستحصل على ٣ ملاعق صوص كريمي كثيف بأقل من ثلث السعرات!",
+    recipeTipEn: "Dissolve just 1 tsp raw tahini in 2 tbsp warm water with lemon and cumin; yields 3 full tbsp of rich sauce for 1/3 the calories!",
+    tagAr: "توفير سعرات ٧٠٪",
+    tagEn: "70% Calorie Cut",
+  },
+  {
+    id: "soy_sauce_light",
+    nameAr: "صويا صوص خفيف (Light Soy Sauce / Kikkoman)",
+    nameEn: "Light Soy Sauce (Low Sodium)",
+    category: "zero_cal",
+    caloriesDescAr: "١٠ سعرات للملعقة الكبيرة",
+    caloriesDescEn: "10 kcal per tbsp",
+    bestWithAr: "الأرز البسمتي، الخضار السوتيه، صدور الدجاج الصيني",
+    bestWithEn: "Basmati rice, sautéed vegetables, stir-fried chicken",
+    recipeTipAr: "نكهة أومامي غنية جداً تجعل الأرز والخضار المسلوق كأنه وجبة مطاعم فاخرة.",
+    recipeTipEn: "Rich umami depth that transforms plain boiled rice and steamed veggies into restaurant quality.",
+    tagAr: "أومامي ونكهة غنية",
+    tagEn: "Savory Umami",
+  },
+  {
+    id: "diet_mayo_bbq",
+    nameAr: "مايونيز لايت / صوص باربيكيو زيرو سكر (Heinz Light / Walden)",
+    nameEn: "Light Mayo / Zero Sugar BBQ Sauce",
+    category: "low_fat_sauce",
+    caloriesDescAr: "٣٥ سعرة للمايونيز اللايت / ١٥ سعرة للباربيكيو زيرو",
+    caloriesDescEn: "35 kcal light mayo / 15 kcal zero BBQ",
+    bestWithAr: "ساندوتشات التوست، التونة، والبرجر المنزلي المشوي",
+    bestWithEn: "Toast sandwiches, tuna, lean grilled burger",
+    recipeTipAr: "استخدم هاينز لايت (أقل دسم بنسبة 60%) أو صوصات زيرو سكر المتاحة في كارفور وسعودي.",
+    recipeTipEn: "Use Heinz Light (60% less fat) or zero sugar BBQ sauces available at Carrefour & Seoudi.",
+    tagAr: "منتجات سوبرماركت",
+    tagEn: "Supermarket Finds",
+  },
+];
 
 interface MealItem {
   id: string;
@@ -56,6 +176,8 @@ export function MealPlanner({ onOpenGroceryList }: MealPlannerProps = {}) {
   const [cadence, setCadence] = useState<"weekly" | "biweekly" | "monthly">("weekly");
   const [selectedDay, setSelectedDay] = useState(1);
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
+  const [showSauceHints, setShowSauceHints] = useState(false);
+  const [selectedSauceFilter, setSelectedSauceFilter] = useState<"all" | "zero_cal" | "low_fat_sauce" | "flavor_hack">("all");
 
   // Active swap state
   const [swappingItem, setSwappingItem] = useState<{
@@ -273,6 +395,90 @@ export function MealPlanner({ onOpenGroceryList }: MealPlannerProps = {}) {
         { unitEn: "1/4 Loaf", unitAr: "ربع رغيف", grams: 32 },
         { unitEn: "1/2 Loaf", unitAr: "نصف رغيف", grams: 65 },
         { unitEn: "1 Loaf", unitAr: "رغيف كامل", grams: 130 },
+      ],
+    },
+    {
+      nameEn: "Rich Bake Whole Wheat Toast (No Added Sugar)",
+      nameAr: "توست ريتش بيك قمح كامل بدون سكر مضاف (دايت)",
+      category: "carb",
+      caloriesPer100g: 220,
+      proteinPer100g: 11.0,
+      carbsPer100g: 40.0,
+      fatsPer100g: 2.0,
+      isFastingFriendly: true,
+      householdPortions: [
+        { unitEn: "1 Slice", unitAr: "شريحة توست دايت", grams: 28 },
+        { unitEn: "2 Slices", unitAr: "شريحتين توست بدون سكر", grams: 56 },
+      ],
+    },
+    {
+      nameEn: "Rich Bake Multi-Cereal & High Fiber Toast",
+      nameAr: "توست ريتش بيك عالي الألياف والحبوب المتعددة",
+      category: "carb",
+      caloriesPer100g: 235,
+      proteinPer100g: 11.5,
+      carbsPer100g: 42.0,
+      fatsPer100g: 2.5,
+      isFastingFriendly: true,
+      householdPortions: [
+        { unitEn: "1 Slice", unitAr: "شريحة توست عالي الألياف", grams: 28 },
+        { unitEn: "2 Slices", unitAr: "شريحتين توست حبوب كاملة", grams: 56 },
+      ],
+    },
+    {
+      nameEn: "Domty Fit Low-Calorie Toast",
+      nameAr: "توست دومتي فيت دايت قليل السعرات والدهون",
+      category: "carb",
+      caloriesPer100g: 210,
+      proteinPer100g: 10.5,
+      carbsPer100g: 38.0,
+      fatsPer100g: 1.8,
+      isFastingFriendly: true,
+      householdPortions: [
+        { unitEn: "1 Slice", unitAr: "شريحة توست دومتي فيت", grams: 28 },
+        { unitEn: "2 Slices", unitAr: "شريحتين توست دومتي فيت", grams: 56 },
+      ],
+    },
+    {
+      nameEn: "Domty Whole Wheat Toast",
+      nameAr: "توست دومتي بني حبة كاملة",
+      category: "carb",
+      caloriesPer100g: 235,
+      proteinPer100g: 10.0,
+      carbsPer100g: 43.0,
+      fatsPer100g: 2.4,
+      isFastingFriendly: true,
+      householdPortions: [
+        { unitEn: "1 Slice", unitAr: "شريحة توست دومتي بني", grams: 28 },
+        { unitEn: "2 Slices", unitAr: "شريحتين توست دومتي بني", grams: 56 },
+      ],
+    },
+    {
+      nameEn: "Rich Bake Whole Wheat Tortilla Wrap",
+      nameAr: "خبز تورتيلا ريتش بيك قمح كامل (لفائف دايت)",
+      category: "carb",
+      caloriesPer100g: 280,
+      proteinPer100g: 9.0,
+      carbsPer100g: 48.0,
+      fatsPer100g: 5.5,
+      isFastingFriendly: true,
+      householdPortions: [
+        { unitEn: "1 Small Wrap", unitAr: "رغيف تورتيلا قمح كامل صغير", grams: 40 },
+        { unitEn: "1 Large Wrap", unitAr: "رغيف تورتيلا كبير", grams: 62 },
+      ],
+    },
+    {
+      nameEn: "Diet Low-Fat Multi-Grain Tortilla Wrap",
+      nameAr: "خبز تورتيلا لايت قليل الدسم والنشويات (دايت راب)",
+      category: "carb",
+      caloriesPer100g: 228,
+      proteinPer100g: 11.0,
+      carbsPer100g: 36.0,
+      fatsPer100g: 4.0,
+      isFastingFriendly: true,
+      householdPortions: [
+        { unitEn: "1 Light Wrap", unitAr: "رغيف تورتيلا لايت", grams: 35 },
+        { unitEn: "2 Light Wraps", unitAr: "رغيفين تورتيلا لايت", grams: 70 },
       ],
     },
     {
@@ -888,6 +1094,104 @@ export function MealPlanner({ onOpenGroceryList }: MealPlannerProps = {}) {
           <span className="text-xl font-black text-foreground">{Math.round(totalFats)}g</span>
           <span className="text-[10px] text-muted-foreground block">{isAr ? "هرمونات وصحة" : "Hormones"}</span>
         </div>
+      </div>
+
+      {/* Diet-Friendly Sauces & Flavor Tricks (Hints / Not strictly calculated by grams) */}
+      <div className="bg-gradient-to-r from-amber-500/10 via-card to-card border border-amber-500/30 p-5 rounded-3xl shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0">
+              <ChefHat className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm sm:text-base text-foreground">
+                  {isAr ? "نكهات وصوصات الدايت الذكية (بدون حساب بالجرام)" : "Smart Diet Sauces & Flavor Tricks (Free Add-Ons)"}
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                  {isAr ? "إضافات مسموحة" : "Zero Guilt"}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {isAr
+                  ? "أسرار تتبيل وصوصات قليلة أو معدومة السعرات تمنح وجبات الدايت طعماً شهياً بدون أن تكسر نظامك."
+                  : "Low/zero-calorie flavor tricks & sauces to keep diet meals delicious without breaking your targets."}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowSauceHints(!showSauceHints)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-card border border-border hover:bg-muted text-xs font-bold text-foreground transition-all shadow-xs shrink-0"
+          >
+            <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+            <span>{showSauceHints ? (isAr ? "إخفاء النكهات" : "Hide Tricks") : (isAr ? "عرض أسرار النكهات (٧ أسرار)" : "Explore Flavor Tricks (7)")}</span>
+            {showSauceHints ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+          </button>
+        </div>
+
+        {/* Expandable Flavor Hacks Grid */}
+        {showSauceHints && (
+          <div className="space-y-4 pt-3 border-t border-border/60 animate-fade-in">
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {[
+                { id: "all", labelAr: "كل النكهات", labelEn: "All Flavors" },
+                { id: "zero_cal", labelAr: "معدومة السعرات / دهون صفر", labelEn: "Zero Fat / Low Cal" },
+                { id: "low_fat_sauce", labelAr: "صوصات دايت وبروتين", labelEn: "High-Protein Dips" },
+                { id: "flavor_hack", labelAr: "خدع التتبيل المصرية", labelEn: "Egyptian Flavor Hacks" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setSelectedSauceFilter(f.id as any)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+                    selectedSauceFilter === f.id
+                      ? "bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40"
+                      : "bg-background border-border text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {isAr ? f.labelAr : f.labelEn}
+                </button>
+              ))}
+            </div>
+
+            {/* Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {DIET_SAUCES_AND_FLAVOR_TRICKS.filter((s) => selectedSauceFilter === "all" || s.category === selectedSauceFilter).map((sauce) => (
+                <div
+                  key={sauce.id}
+                  className="p-3.5 rounded-2xl bg-card border border-border/80 space-y-2 hover:border-amber-500/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                      <Droplets className="w-3.5 h-3.5 text-amber-500" />
+                      <span>{isAr ? sauce.nameAr : sauce.nameEn}</span>
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                      {isAr ? sauce.tagAr : sauce.tagEn}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    {isAr ? sauce.caloriesDescAr : sauce.caloriesDescEn}
+                  </p>
+
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground">{isAr ? "طريقة الاستخدام: " : "How to use: "}</strong>
+                    {isAr ? sauce.recipeTipAr : sauce.recipeTipEn}
+                  </p>
+
+                  <div className="text-[10px] text-muted-foreground pt-1 border-t border-border/40">
+                    <span className="font-semibold text-foreground">{isAr ? "ممتاز مع: " : "Best with: "}</span>
+                    {isAr ? sauce.bestWithAr : sauce.bestWithEn}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Meals List */}
